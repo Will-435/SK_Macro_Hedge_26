@@ -41,11 +41,19 @@ The same three masks are then re-used everywhere downstream so that the rolling 
 - Rolling 252-day conditional correlation between gold and each semi, restricted within each window to the regime days.
 - Regime-filtered correlation matrices over `[gold, samsung, skhynix, soxx]`, computed with both Pearson and Spearman rank correlation.
 
+## Project directory layout
+
+The pipeline creates and populates the following directories automatically.
+
+- `data/raw/` — raw yfinance pulls, cached as Parquet, one file per ticker (`raw_gold.parquet`, `raw_samsung.parquet`, etc.) and one for VIX. These are the un-processed downloads, kept so that subsequent runs can inspect or re-use them without re-fetching.
+- `data/processed/` — all derived tables in Parquet, plus the JSON run summary.
+- `visuals/` — every figure as a PNG.
+
+Parquet is used in preference to CSV because it is columnar, typed, and substantially smaller on disk for the size of panel the pipeline produces.
+
 ## Outputs
 
-All artefacts are written to `outputs/`.
-
-### Plots
+### Plots in `visuals/`
 
 - `prices_and_vix.png` — normalised price panel with VIX on a secondary axis.
 - `vix_regime.png` — VIX over time with the top-quartile regime highlighted.
@@ -56,13 +64,15 @@ All artefacts are written to `outputs/`.
 - `rolling_corr_<regime>.png` — rolling 252-day conditional correlation between gold and each semi, one file per regime.
 - `correlation_matrices_grid.png` — 3 by 2 grid of regime-filtered correlation matrices (rows = regime, columns = Pearson and Spearman).
 
-### Tables and CSVs
+Every figure carries a caption directly below it that defines any symbol used in the chart (for example `rho`, `bps`, `r_X`, `Q1`, `RV_t`, `VIX`).
 
-- `prices.csv`, `volumes.csv`, `vix.csv` — raw aligned inputs.
-- `log_returns.csv`, `four_week_returns.csv`, `realised_volatility.csv` — derived series.
-- `rolling_corr_<ticker>_<regime>.csv` — the rolling correlation time series, one per ticker and regime.
-- `corr_matrix_<method>_<regime>.csv` — the regime-filtered correlation matrices.
-- `pipeline_summary.json` — full machine-readable run summary, including all conditional gold statistics and all six correlation matrices.
+### Tables in `data/processed/`
+
+- `prices.parquet`, `volumes.parquet`, `vix.parquet` — aligned input panel.
+- `log_returns.parquet`, `four_week_returns.parquet`, `realised_volatility.parquet` — derived series.
+- `rolling_corr_<ticker>_<regime>.parquet` — the rolling correlation time series, one per ticker and regime.
+- `corr_matrix_<method>_<regime>.parquet` — the regime-filtered correlation matrices.
+- `pipeline_summary.json` — full machine-readable run summary, including every conditional gold statistic and all six correlation matrices.
 
 ## How to read the output
 
@@ -70,6 +80,11 @@ All artefacts are written to `outputs/`.
 - Compare the same number across regimes for one ticker. If gold's average return falls (or flips negative) once VIX is added to the filter, gold is failing to hedge in the precise regime where the trade actually needs it.
 - The **rolling 252-day** plots show whether that hedging behaviour is stable over time or regime-dependant. A line that drifts upward through the sample is the canonical signature of a hedge that is decaying.
 - The **correlation matrices** in `correlation_matrices_grid.png` give the snapshot view. Pearson captures linear co-movement; Spearman captures monotonic co-movement and is less sensitive to outliers, which matters alot on tail-filtered data.
+
+## Visual style
+
+- Every figure uses a deliberate red, green and blue palette. Per-ticker colour assignments are fixed across the pipeline: Samsung is blue, SK Hynix is red, SOXX is green. Gold uses an unconventional red, the VIX overlay a soft grey.
+- Global font sizes are controlled by the two constants `TITLE_FONT` and `TEXT_FONT` at the top of the script. Editing either re-sizes every plot consistently.
 
 ## Sign convention and caveats
 
@@ -81,12 +96,14 @@ All artefacts are written to `outputs/`.
 
 ## Install and run
 
-- `pip install yfinance pandas numpy scipy statsmodels matplotlib seaborn`
+- `pip install -r requirements.txt`
 - `python Gold-time-series-analysis.py --start 2015-01-01 --end 2026-05-01`
+
+The dependancies pinned in `requirements.txt` are `numpy`, `pandas`, `matplotlib`, `seaborn`, `yfinance`, `scipy` and `pyarrow`. `pyarrow` is required for the Parquet output.
 
 CLI flags:
 
 - `--start` — ISO date, default `2015-01-01`.
 - `--end` — ISO date, default today (UTC).
 
-The script logs progress to stderr and prints a compact end-of-run summary table; the full detail is in `outputs/pipeline_summary.json`.
+The script logs progress to stderr and prints a compact end-of-run summary table; the full detail is in `data/processed/pipeline_summary.json`.
