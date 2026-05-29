@@ -173,12 +173,14 @@ CAPTION_X_POSITION = 0.5
 CAPTION_Y_POSITION = 0.02
 CAPTION_BOTTOM_PAD = 0.18
 
-# Filesystem layout.
+# Filesystem layout. One sub-directory per script keeps each pipeline's
+# outputs cleanly separated from any other pipeline in this repository.
 PROJECT_ROOT = Path(__file__).resolve().parent
+SCRIPT_SUBDIR = "gold_time_series_analysis"
 DATA_DIR = PROJECT_ROOT / "data"
-DATA_RAW_DIR = DATA_DIR / "raw"
-DATA_PROCESSED_DIR = DATA_DIR / "processed"
-VISUALS_DIR = PROJECT_ROOT / "visuals"
+DATA_RAW_DIR = DATA_DIR / "raw" / SCRIPT_SUBDIR
+DATA_PROCESSED_DIR = DATA_DIR / "processed" / SCRIPT_SUBDIR
+VISUALS_DIR = PROJECT_ROOT / "visuals" / SCRIPT_SUBDIR
 
 # CLI defaults.
 DEFAULT_START_DATE = "2015-01-01"
