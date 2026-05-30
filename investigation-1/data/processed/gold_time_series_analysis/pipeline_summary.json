@@ -1,0 +1,277 @@
+{
+  "run_at": "2026-05-30T00:14:34Z",
+  "start": "2015-01-02",
+  "end": "2026-05-29",
+  "n_obs": 2935,
+  "notes": [
+    "Historical implied volatility per stock is not available on free data sources; used VIX (global) and 21d realised vol (stock-specific) as IV proxies."
+  ],
+  "conditional_stats": [
+    {
+      "ticker": "samsung",
+      "regime": "no_vol_filter",
+      "n_obs": 729,
+      "gold_mean_bps": 7.906743934940104,
+      "gold_median_bps": 5.4475134898357425,
+      "gold_std_bps": 103.58075370026413,
+      "gold_hit_rate_positive": 0.5281207133058985,
+      "semi_mean_bps": -49.215546492106796,
+      "corr_pearson": 0.10182063367643711,
+      "corr_spearman": 0.024248872932648075
+    },
+    {
+      "ticker": "samsung",
+      "regime": "high_vix",
+      "n_obs": 283,
+      "gold_mean_bps": 1.028032965446051,
+      "gold_median_bps": 0.0,
+      "gold_std_bps": 135.45730550958658,
+      "gold_hit_rate_positive": 0.49469964664310956,
+      "semi_mean_bps": -58.89824991768832,
+      "corr_pearson": 0.15742237446077328,
+      "corr_spearman": 0.06790777363423976
+    },
+    {
+      "ticker": "samsung",
+      "regime": "high_realised_vol",
+      "n_obs": 201,
+      "gold_mean_bps": 5.48936408407945,
+      "gold_median_bps": 5.8578222243621525,
+      "gold_std_bps": 147.87232450821546,
+      "gold_hit_rate_positive": 0.5223880597014925,
+      "semi_mean_bps": -66.24109540190491,
+      "corr_pearson": 0.197705753968558,
+      "corr_spearman": 0.10942792025746383
+    },
+    {
+      "ticker": "skhynix",
+      "regime": "no_vol_filter",
+      "n_obs": 729,
+      "gold_mean_bps": 1.9195658363995116,
+      "gold_median_bps": 2.634836739012769,
+      "gold_std_bps": 106.45101283278626,
+      "gold_hit_rate_positive": 0.5130315500685871,
+      "semi_mean_bps": -55.250934201161904,
+      "corr_pearson": 0.12651906526468457,
+      "corr_spearman": 0.0716794474510902
+    },
+    {
+      "ticker": "skhynix",
+      "regime": "high_vix",
+      "n_obs": 258,
+      "gold_mean_bps": 1.9493687561903763,
+      "gold_median_bps": 1.352716223075312,
+      "gold_std_bps": 138.66132648068736,
+      "gold_hit_rate_positive": 0.5038759689922481,
+      "semi_mean_bps": -68.04913464463294,
+      "corr_pearson": 0.2008094266643553,
+      "corr_spearman": 0.1322172301845187
+    },
+    {
+      "ticker": "skhynix",
+      "regime": "high_realised_vol",
+      "n_obs": 211,
+      "gold_mean_bps": 11.711932434811459,
+      "gold_median_bps": 12.798782157226185,
+      "gold_std_bps": 132.61085960667472,
+      "gold_hit_rate_positive": 0.5450236966824644,
+      "semi_mean_bps": -48.91935986738643,
+      "corr_pearson": 0.12052441239067846,
+      "corr_spearman": 0.01694772412528503
+    },
+    {
+      "ticker": "soxx",
+      "regime": "no_vol_filter",
+      "n_obs": 729,
+      "gold_mean_bps": 2.2677956533190513,
+      "gold_median_bps": 1.7523692601439933,
+      "gold_std_bps": 113.16346729274528,
+      "gold_hit_rate_positive": 0.5075445816186557,
+      "semi_mean_bps": -46.52350797390643,
+      "corr_pearson": 0.10801047963188677,
+      "corr_spearman": 0.043230194481675324
+    },
+    {
+      "ticker": "soxx",
+      "regime": "high_vix",
+      "n_obs": 342,
+      "gold_mean_bps": -1.2354515523420049,
+      "gold_median_bps": 0.0,
+      "gold_std_bps": 137.7856541581517,
+      "gold_hit_rate_positive": 0.49122807017543857,
+      "semi_mean_bps": -66.59186503987078,
+      "corr_pearson": 0.14318244316919954,
+      "corr_spearman": 0.0730998086187783
+    },
+    {
+      "ticker": "soxx",
+      "regime": "high_realised_vol",
+      "n_obs": 322,
+      "gold_mean_bps": -1.2941595574081624,
+      "gold_median_bps": 3.0678476583068104,
+      "gold_std_bps": 137.29129534393232,
+      "gold_hit_rate_positive": 0.5093167701863354,
+      "semi_mean_bps": -48.42574337966833,
+      "corr_pearson": 0.18919215152143276,
+      "corr_spearman": 0.14444719916993518
+    }
+  ],
+  "correlation_matrices": {
+    "no_vol_filter__pearson": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_samsung": 0.0959,
+        "r_skhynix": 0.1127,
+        "r_soxx": 0.1093
+      },
+      "r_samsung": {
+        "r_gold": 0.0959,
+        "r_samsung": 1.0,
+        "r_skhynix": 0.6337,
+        "r_soxx": 0.063
+      },
+      "r_skhynix": {
+        "r_gold": 0.1127,
+        "r_samsung": 0.6337,
+        "r_skhynix": 1.0,
+        "r_soxx": 0.1134
+      },
+      "r_soxx": {
+        "r_gold": 0.1093,
+        "r_samsung": 0.063,
+        "r_skhynix": 0.1134,
+        "r_soxx": 1.0
+      }
+    },
+    "no_vol_filter__spearman": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_samsung": 0.0281,
+        "r_skhynix": 0.0647,
+        "r_soxx": 0.0425
+      },
+      "r_samsung": {
+        "r_gold": 0.0281,
+        "r_samsung": 1.0,
+        "r_skhynix": 0.5504,
+        "r_soxx": 0.0648
+      },
+      "r_skhynix": {
+        "r_gold": 0.0647,
+        "r_samsung": 0.5504,
+        "r_skhynix": 1.0,
+        "r_soxx": 0.1107
+      },
+      "r_soxx": {
+        "r_gold": 0.0425,
+        "r_samsung": 0.0648,
+        "r_skhynix": 0.1107,
+        "r_soxx": 1.0
+      }
+    },
+    "high_vix__pearson": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_samsung": 0.1796,
+        "r_skhynix": 0.1812,
+        "r_soxx": 0.1599
+      },
+      "r_samsung": {
+        "r_gold": 0.1796,
+        "r_samsung": 1.0,
+        "r_skhynix": 0.7929,
+        "r_soxx": 0.0658
+      },
+      "r_skhynix": {
+        "r_gold": 0.1812,
+        "r_samsung": 0.7929,
+        "r_skhynix": 1.0,
+        "r_soxx": 0.1425
+      },
+      "r_soxx": {
+        "r_gold": 0.1599,
+        "r_samsung": 0.0658,
+        "r_skhynix": 0.1425,
+        "r_soxx": 1.0
+      }
+    },
+    "high_vix__spearman": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_samsung": 0.0962,
+        "r_skhynix": 0.1229,
+        "r_soxx": 0.0828
+      },
+      "r_samsung": {
+        "r_gold": 0.0962,
+        "r_samsung": 1.0,
+        "r_skhynix": 0.7162,
+        "r_soxx": 0.0603
+      },
+      "r_skhynix": {
+        "r_gold": 0.1229,
+        "r_samsung": 0.7162,
+        "r_skhynix": 1.0,
+        "r_soxx": 0.1508
+      },
+      "r_soxx": {
+        "r_gold": 0.0828,
+        "r_samsung": 0.0603,
+        "r_skhynix": 0.1508,
+        "r_soxx": 1.0
+      }
+    },
+    "high_realised_vol__pearson": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_samsung": 0.1529,
+        "r_skhynix": 0.1343,
+        "r_soxx": 0.1688
+      },
+      "r_samsung": {
+        "r_gold": 0.1529,
+        "r_samsung": 1.0,
+        "r_skhynix": 0.7072,
+        "r_soxx": 0.0689
+      },
+      "r_skhynix": {
+        "r_gold": 0.1343,
+        "r_samsung": 0.7072,
+        "r_skhynix": 1.0,
+        "r_soxx": 0.13
+      },
+      "r_soxx": {
+        "r_gold": 0.1688,
+        "r_samsung": 0.0689,
+        "r_skhynix": 0.13,
+        "r_soxx": 1.0
+      }
+    },
+    "high_realised_vol__spearman": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_samsung": 0.0548,
+        "r_skhynix": 0.0535,
+        "r_soxx": 0.1126
+      },
+      "r_samsung": {
+        "r_gold": 0.0548,
+        "r_samsung": 1.0,
+        "r_skhynix": 0.6459,
+        "r_soxx": 0.0738
+      },
+      "r_skhynix": {
+        "r_gold": 0.0535,
+        "r_samsung": 0.6459,
+        "r_skhynix": 1.0,
+        "r_soxx": 0.13
+      },
+      "r_soxx": {
+        "r_gold": 0.1126,
+        "r_samsung": 0.0738,
+        "r_skhynix": 0.13,
+        "r_soxx": 1.0
+      }
+    }
+  }
+}

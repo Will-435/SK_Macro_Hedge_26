@@ -1,0 +1,13 @@
+{
+  "run_at": "2026-05-30T00:15:05Z",
+  "start": "2015-01-01",
+  "end": "2026-05-29",
+  "universe_attempted": 94,
+  "universe_fetched": 87,
+  "top_n": 20,
+  "notes": [
+    "International sovereign bond yield coverage on Yahoo Finance is sparse; international bond exposure is therefore represented primarily through bond ETFs (BWX, IGOV, BNDX, EMB, EMLC). Country equity ETFs cover swap-line countries plus South Korea on the equity side.",
+    "Crypto tokens are quoted on a 7-day calendar by Yahoo Finance but are aligned here to the equity / bond trading calendar via forward fill, which introduces a mild attenuation of the daily correlation estimate during equity holidays.",
+    "Pearson and Spearman are computed on daily log returns for price tickers and on daily first differences for yield tickers. Spearman is invariant to monotone transformations so the two scales are directly comparable in rank space; Pearson is sensitive to magnitudes and to outliers."
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "run_at": "2026-05-30T00:14:30Z",
+  "start": "2015-01-02",
+  "end": "2026-05-29",
+  "n_obs": 2935,
+  "notes": [
+    "Realised-volatility-only deep dive on SK Hynix. The headline regime uses 4-week return at or below the 10th percentile AND 21d realised vol at or above the 75th percentile."
+  ],
+  "subsample_stats": [
+    {
+      "subsample": "full_sample",
+      "n_obs": 2915,
+      "gold_mean_bps": 4.369824307753255,
+      "gold_median_bps": 2.756553127856165,
+      "gold_std_bps": 102.01311797505262,
+      "gold_hit_rate_positive": 0.5142367066895369,
+      "target_mean_bps": 13.836840929302026,
+      "corr_pearson": 0.052068945831338954,
+      "corr_spearman": 0.02443750592139516
+    },
+    {
+      "subsample": "bearish_only",
+      "n_obs": 292,
+      "gold_mean_bps": 7.298785100396653,
+      "gold_median_bps": 0.0,
+      "gold_std_bps": 120.03215053430908,
+      "gold_hit_rate_positive": 0.4931506849315068,
+      "target_mean_bps": -96.88466193081508,
+      "corr_pearson": 0.11496578195856101,
+      "corr_spearman": 0.03973160963022765
+    },
+    {
+      "subsample": "high_rv_only",
+      "n_obs": 729,
+      "gold_mean_bps": 10.322873392990836,
+      "gold_median_bps": 10.60951786911346,
+      "gold_std_bps": 133.08257862673105,
+      "gold_hit_rate_positive": 0.5404663923182441,
+      "target_mean_bps": 35.75607838832497,
+      "corr_pearson": 0.09456194814472826,
+      "corr_spearman": 0.029745844243748973
+    },
+    {
+      "subsample": "bearish_and_high_rv",
+      "n_obs": 102,
+      "gold_mean_bps": 27.014899123033388,
+      "gold_median_bps": 34.65920663058508,
+      "gold_std_bps": 157.12478865196405,
+      "gold_hit_rate_positive": 0.5882352941176471,
+      "target_mean_bps": -111.52214327054403,
+      "corr_pearson": 0.16171148462663604,
+      "corr_spearman": 0.059066732016150654
+    }
+  ],
+  "correlation_matrices": {
+    "full_sample__pearson": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_skhynix": 0.0521
+      },
+      "r_skhynix": {
+        "r_gold": 0.0521,
+        "r_skhynix": 1.0
+      }
+    },
+    "full_sample__spearman": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_skhynix": 0.0244
+      },
+      "r_skhynix": {
+        "r_gold": 0.0244,
+        "r_skhynix": 1.0
+      }
+    },
+    "bearish_and_high_rv__pearson": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_skhynix": 0.1617
+      },
+      "r_skhynix": {
+        "r_gold": 0.1617,
+        "r_skhynix": 1.0
+      }
+    },
+    "bearish_and_high_rv__spearman": {
+      "r_gold": {
+        "r_gold": 1.0,
+        "r_skhynix": 0.0591
+      },
+      "r_skhynix": {
+        "r_gold": 0.0591,
+        "r_skhynix": 1.0
+      }
+    }
+  }
+}

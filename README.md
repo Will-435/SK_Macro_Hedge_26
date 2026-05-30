@@ -2,108 +2,91 @@
 
 South Korean tech equity fallback — macro options trade research.
 
-This repository hosts the research pipeline behind a macro options trade that uses Gold as a fallback against concentrated exposure to South Korean semiconductor equities (Samsung Electronics, SK Hynix) and the global semiconductor ETF (SOXX).
+This repository hosts the research pipeline behind a macro options trade that started life as a direct gold-vs-Korean-semis hedge thesis and has since broadened into a portfolio-diversification reframing. The work is now organised into two seperate investigations, each living in its own subdirectory at the top of the repo.
 
-## `Gold-time-series-analysis.py`
+## Repository layout
 
-A self-contained pipeline that asks one question:
+The top-level tree is intentionally simple:
+
+- `investigation-1/` — the original gold-vs-Korean-semis study and the SK Hynix deep dive.
+- `investigation-2/` — the broader macro-correlation work: USD vs oil and AI proxies, plus the inverse-Spearman scraper that ranks a broad universe of ETFs, bond yields and crypto assets against the NASDAQ Composite.
+- `README.md` — this file.
+- `requirements.txt` — Python dependancies pinned for the whole project.
+- `venv/` — local virtual environment (not committed in production).
+
+Each investigation directory is self-contained. The Python scripts that produce its outputs live next to their own `data/` and `visuals/` directories. Running a script always lands its raw downloads, processed tables and figures inside the same investigation directory it was launched from.
+
+Inside each investigation:
+
+- `data/raw/<script_name>/` — raw yfinance pulls cached as Parquet, one sub-directory per script.
+- `data/processed/<script_name>/` — derived Parquet tables, CSVs where the user requested them, and the JSON run summary.
+- `visuals/<script_name>/` — every figure as a PNG, one sub-directory per script.
+
+This way the two investigations can be regenerated independantly and their outputs never collide.
+
+## Investigation 1
+
+Lives in `investigation-1/`. The original research question:
 
 - When semiconductor equities suffer left-tail 4-week price moves, **and** when volatility regimes are elevated, how does gold behave?
 
 The aim is to seperate the periods where gold actually offsets semi weakness from the periods where it co-moves with the stress.
 
-## Volatility proxies
+### Scripts
 
-Historical per-stock implied volatility is not avaliable on free data sources (yfinance only returns current option snapshots, not a historic IV time series). The pipeline therefore uses two complementary proxies in parallel:
+- `Gold-time-series-analysis.py` — multi-ticker pipeline covering Gold, Samsung, SK Hynix and SOXX. Uses both VIX and per-stock realised volatility as IV proxies. Produces conditional gold statistics, rolling 252-day conditional correlations and regime-filtered correlation matrices under three regime variants (no vol filter, high VIX, high realised vol).
+- `deep_gold_SKH_liquidity_risk.py` — single-ticker deep dive on SK Hynix that deliberately drops VIX and uses only the stock's own realised volatility. The headline regime requires the SKH 4-week return at or below its 10th percentile AND the 21-day annualised realised volatility at or above its 75th percentile.
+- `conclusions 1/` — the written write-up of the investigation's findings.
 
-- **VIX** (Yahoo ticker `^VIX`) — the global equity-vol regime indicator.
-- **21-day rolling realised volatility** of each semi ticker — a stock-specific IV proxy.
+### Key takeaways
 
-For every IV-dependant output the pipeline produces three variants, so that the result is not silently dependant on a single vol definition.
+- Daily-frequency gold-vs-Korean-semi correlations are tiny in calm regimes and rise in stress, which is the canonical "all correlations go to 1" failure of a direct hedge.
+- The SK Hynix bearish + high-realised-vol sub-sample is the one exception: gold averages roughly **+36 basis points per day** on the 74 days that satisfy that filter, with a 61% hit rate. The sample is small and the regime is rare, so the result is suggestive rather than tradeable on its own.
+- The rolling conditional correlation has drifted downwards through 2025 and turned negative in late 2025; whether this is a regime change or sample-size noise needs to be revisited as more regime days accumulate.
 
-## The three regime variants
+## Investigation 2
 
-Each regime is a boolean mask over the daily calender. They are:
+Lives in `investigation-2/`. The diversification reframing: once a direct hedge looked weak, the question became "what does the broader macro neighbourhood actually look like, and where is the diversification really coming from?"
 
-- **`no_vol_filter`** — left-quartile 4-week semi return only. No volatility condition. This is the "without VIX" output the brief asked for.
-- **`high_vix`** — left-quartile 4-week semi return **and** VIX in its top quartile. This is the "with VIX" output.
-- **`high_realised_vol`** — left-quartile 4-week semi return **and** that ticker's own 21-day annualised realised volatility in its top quartile.
+### Scripts
 
-The same three masks are then re-used everywhere downstream so that the rolling correlations, the gold summary stats and the correlation matrices are all directly comparable across regimes.
+- `usd_oil_ai_rolling_correlation.py` — rolling 252-day and 63-day correlations between the US Dollar Index and each of WTI crude oil, an equal-weighted Mag 7 basket and QQQ. Also produces a 2 by 2 grid of correlation matrices over gold, USD and NASDAQ comparing the full sample to a bearish NASDAQ regime.
+- `inverse_pearson_rank_scraper.py` — scans a wide universe of US sector ETFs, US industry ETFs, broad index ETFs, country equity ETFs, US Treasury yields, US and international bond ETFs, plus eleven major crypto tokens and eleven crypto-exposed equities. Computes both Pearson and Spearman correlations against the NASDAQ Composite and produces four ranked ladder diagrams: top positive Spearman, top negative Spearman, top positive Pearson, top negative Pearson.
 
-## What the script computes
+### Key takeaways
 
-- Daily log returns for gold, Samsung, SK Hynix and SOXX.
-- 4-week (20 trading day) rolling log returns per semi.
-- 21-day annualised realised volatility per semi.
-- Trading volume per semi, smoothed with a 20-day moving average.
-- Conditional gold summary statistics per (ticker, regime) — mean, median, std, hit-rate, plus Pearson and Spearman correlation with the semi on the regime days.
-- Rolling 252-day conditional correlation between gold and each semi, restricted within each window to the regime days.
-- Regime-filtered correlation matrices over `[gold, samsung, skhynix, soxx]`, computed with both Pearson and Spearman rank correlation.
-
-## Project directory layout
-
-The pipeline creates and populates the following directories automatically.
-
-- `data/raw/` — raw yfinance pulls, cached as Parquet, one file per ticker (`raw_gold.parquet`, `raw_samsung.parquet`, etc.) and one for VIX. These are the un-processed downloads, kept so that subsequent runs can inspect or re-use them without re-fetching.
-- `data/processed/` — all derived tables in Parquet, plus the JSON run summary.
-- `visuals/` — every figure as a PNG.
-
-Parquet is used in preference to CSV because it is columnar, typed, and substantially smaller on disk for the size of panel the pipeline produces.
-
-## Outputs
-
-### Plots in `visuals/`
-
-- `prices_and_vix.png` — normalised price panel with VIX on a secondary axis.
-- `vix_regime.png` — VIX over time with the top-quartile regime highlighted.
-- `realised_volatility.png` — 21-day annualised realised vol per semi.
-- `four_week_return_distributions.png` — histogram of 4-week semi returns with the left-quartile threshhold marked.
-- `trading_volume.png` — 20-day moving-average trading volume per semi.
-- `conditional_gold_<regime>.png` — bar chart of gold mean return (bps) and gold hit-rate-positive per ticker, one file per regime.
-- `rolling_corr_<regime>.png` — rolling 252-day conditional correlation between gold and each semi, one file per regime.
-- `correlation_matrices_grid.png` — 3 by 2 grid of regime-filtered correlation matrices (rows = regime, columns = Pearson and Spearman).
-
-Every figure carries a caption directly below it that defines any symbol used in the chart (for example `rho`, `bps`, `r_X`, `Q1`, `RV_t`, `VIX`).
-
-### Tables in `data/processed/`
-
-- `prices.parquet`, `volumes.parquet`, `vix.parquet` — aligned input panel.
-- `log_returns.parquet`, `four_week_returns.parquet`, `realised_volatility.parquet` — derived series.
-- `rolling_corr_<ticker>_<regime>.parquet` — the rolling correlation time series, one per ticker and regime.
-- `corr_matrix_<method>_<regime>.parquet` — the regime-filtered correlation matrices.
-- `pipeline_summary.json` — full machine-readable run summary, including every conditional gold statistic and all six correlation matrices.
-
-## How to read the output
-
-- Look at the **conditional gold mean** for each regime. If it is meaningfully positive on left-tail semi days, gold is offsetting the stress on average.
-- Compare the same number across regimes for one ticker. If gold's average return falls (or flips negative) once VIX is added to the filter, gold is failing to hedge in the precise regime where the trade actually needs it.
-- The **rolling 252-day** plots show whether that hedging behaviour is stable over time or regime-dependant. A line that drifts upward through the sample is the canonical signature of a hedge that is decaying.
-- The **correlation matrices** in `correlation_matrices_grid.png` give the snapshot view. Pearson captures linear co-movement; Spearman captures monotonic co-movement and is less sensitive to outliers, which matters alot on tail-filtered data.
+- Gold vs USD shows a stable Spearman correlation of roughly −0.4 across both calm and bearish-NASDAQ regimes. This is the cleanest single empirical fact in the whole project and is the empirical anchor for treating gold as the FX-leg of the diversification reframing rather than as an equity hedge.
+- Daily-frequency NASDAQ correlations max out at roughly +0.99 (IWF, XLK) on the positive side and roughly −0.10 (long-duration Treasuries) on the negative side. No asset in a 87-strong universe reaches −0.6, including crypto.
+- Crypto equities behave like high-beta NASDAQ proxies (Spearman around +0.5 to +0.7), not like the underlying tokens. Crypto tokens themselves cluster around +0.18 to +0.28 — uncorrelated-to-mildly-positive, not inverse.
 
 ## Visual style
 
-- Every figure uses a deliberate red, green and blue palette. Per-ticker colour assignments are fixed across the pipeline: Samsung is blue, SK Hynix is red, SOXX is green. Gold uses an unconventional red, the VIX overlay a soft grey.
-- Global font sizes are controlled by the two constants `TITLE_FONT` and `TEXT_FONT` at the top of the script. Editing either re-sizes every plot consistently.
+- Every figure uses a deliberate red, green and blue palette throughout. Per-ticker colour assignments are fixed across each pipeline for visual consistancy.
+- Global font sizes in each script are controlled by the two constants `TITLE_FONT` and `TEXT_FONT` at the top of the file. Editing either resizes every plot consistently.
+- Every figure carries a descriptive caption directly below the chart that defines any symbol used in the figure (for example `rho`, `bps`, `r_X`, `Q1`, `RV_t`, `VIX`).
 
 ## Sign convention and caveats
 
 - Gold is the COMEX gold front-month future `GC=F`, quoted in USD per troy ounce.
-- The pipeline is **correlational, not causal**. It describes the conditional dependance structure between gold and semi returns, which is the right object for a diversification or hedging argument, but does not identify the underlying mechanism.
-- The high-vol thresholds use the full-sample 75th percentile. This is a fixed reference, not a rolling one, so the regime masks are stable across the run but tilted towards the tail of the realised distribution.
+- The pipelines are **correlational, not causal**. They describe conditional dependance structures, which is the right object for a diversification or hedging argument, but does not identify the underlying mechanism.
+- High-vol thresholds use the full-sample 75th percentile. This is a fixed reference, not a rolling one, so the regime masks are stable across the run but tilted towards the tail of the realised distribution.
 - Yahoo Finance is convenient but not authoritative; production runs should swap the data layer for a vendor feed (Bloomberg, Refinitiv) without changing the modelling code.
 - VIX is a US-equity vol gauge. It is a reasonable proxy for global equity vol regimes but is not a Korean-specific stress indicator. The stock-specific realised vol regime is provided as a complementary view that does not have this geographic bias.
 
 ## Install and run
 
 - `pip install -r requirements.txt`
-- `python Gold-time-series-analysis.py --start 2015-01-01 --end 2026-05-01`
+- From inside the investigation directory you want to run, invoke the script directly:
+  - `cd investigation-1 && python Gold-time-series-analysis.py --start 2015-01-01 --end 2026-05-01`
+  - `cd investigation-1 && python deep_gold_SKH_liquidity_risk.py --start 2015-01-01 --end 2026-05-01`
+  - `cd investigation-2 && python usd_oil_ai_rolling_correlation.py --start 2015-01-01 --end 2026-05-01`
+  - `cd investigation-2 && python inverse_pearson_rank_scraper.py --start 2015-01-01 --end 2026-05-01`
 
 The dependancies pinned in `requirements.txt` are `numpy`, `pandas`, `matplotlib`, `seaborn`, `yfinance`, `scipy` and `pyarrow`. `pyarrow` is required for the Parquet output.
 
-CLI flags:
+CLI flags accepted by every script:
 
 - `--start` — ISO date, default `2015-01-01`.
 - `--end` — ISO date, default today (UTC).
 
-The script logs progress to stderr and prints a compact end-of-run summary table; the full detail is in `data/processed/pipeline_summary.json`.
+Each script logs progress to stderr and prints a compact end-of-run summary table; the full detail is in `data/processed/<script_name>/pipeline_summary.json` inside the relevant investigation directory.

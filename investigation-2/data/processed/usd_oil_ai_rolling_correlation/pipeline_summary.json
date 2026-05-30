@@ -1,0 +1,121 @@
+{
+  "run_at": "2026-05-30T00:15:10Z",
+  "start": "2015-01-05",
+  "end": "2026-05-29",
+  "n_obs": 2868,
+  "notes": [
+    "USD = ICE US Dollar Index (DX-Y.NYB). Oil = WTI front-month (CL=F). Mag 7 = equal-weighted log-return basket of NVDA, MSFT, GOOGL, AAPL, AMZN, META, TSLA, compounded into a synthetic price index. QQQ = Invesco QQQ Trust (Nasdaq-100)."
+  ],
+  "pair_summaries": [
+    {
+      "other_asset": "oil",
+      "n_obs": 2868,
+      "full_sample_corr_pearson": -0.026255165015848275,
+      "full_sample_corr_spearman": -0.06401073054158536,
+      "rolling_long_mean": -0.04278249995036879,
+      "rolling_long_min": -0.3216549894726094,
+      "rolling_long_max": 0.30647887752079256,
+      "rolling_short_mean": -0.052888290631138576,
+      "rolling_short_min": -0.5083048363651798,
+      "rolling_short_max": 0.5542069801023617
+    },
+    {
+      "other_asset": "mag7",
+      "n_obs": 2868,
+      "full_sample_corr_pearson": -0.05922029737865879,
+      "full_sample_corr_spearman": -0.07791709376591793,
+      "rolling_long_mean": -0.035995538476072224,
+      "rolling_long_min": -0.44251819367745177,
+      "rolling_long_max": 0.3265319397821041,
+      "rolling_short_mean": -0.043561514176054625,
+      "rolling_short_min": -0.6904087066744031,
+      "rolling_short_max": 0.5279202233109533
+    },
+    {
+      "other_asset": "qqq",
+      "n_obs": 2868,
+      "full_sample_corr_pearson": -0.0750761245558472,
+      "full_sample_corr_spearman": -0.09293826702275983,
+      "rolling_long_mean": -0.06426374757916815,
+      "rolling_long_min": -0.475678281941775,
+      "rolling_long_max": 0.35524629699809457,
+      "rolling_short_mean": -0.06998023625057286,
+      "rolling_short_min": -0.6988519199107825,
+      "rolling_short_max": 0.5505016410085318
+    }
+  ],
+  "trio_correlation_matrices": {
+    "trio_full_pearson": {
+      "Gold": {
+        "Gold": 1.0,
+        "USD": -0.3814,
+        "NASDAQ": 0.05
+      },
+      "USD": {
+        "Gold": -0.3814,
+        "USD": 1.0,
+        "NASDAQ": -0.0751
+      },
+      "NASDAQ": {
+        "Gold": 0.05,
+        "USD": -0.0751,
+        "NASDAQ": 1.0
+      }
+    },
+    "trio_full_spearman": {
+      "Gold": {
+        "Gold": 1.0,
+        "USD": -0.4197,
+        "NASDAQ": 0.0124
+      },
+      "USD": {
+        "Gold": -0.4197,
+        "USD": 1.0,
+        "NASDAQ": -0.0929
+      },
+      "NASDAQ": {
+        "Gold": 0.0124,
+        "USD": -0.0929,
+        "NASDAQ": 1.0
+      }
+    },
+    "trio_regime_pearson": {
+      "Gold": {
+        "Gold": 1.0,
+        "USD": -0.3671,
+        "NASDAQ": 0.0946
+      },
+      "USD": {
+        "Gold": -0.3671,
+        "USD": 1.0,
+        "NASDAQ": 0.0393
+      },
+      "NASDAQ": {
+        "Gold": 0.0946,
+        "USD": 0.0393,
+        "NASDAQ": 1.0
+      }
+    },
+    "trio_regime_spearman": {
+      "Gold": {
+        "Gold": 1.0,
+        "USD": -0.4198,
+        "NASDAQ": 0.0207
+      },
+      "USD": {
+        "Gold": -0.4198,
+        "USD": 1.0,
+        "NASDAQ": 0.0006
+      },
+      "NASDAQ": {
+        "Gold": 0.0207,
+        "USD": 0.0006,
+        "NASDAQ": 1.0
+      }
+    }
+  },
+  "trio_n_obs": {
+    "full": 2868,
+    "regime": 239
+  }
+}
