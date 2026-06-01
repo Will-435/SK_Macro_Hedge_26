@@ -1,0 +1,17 @@
+{
+  "run_at": "2026-06-01T16:36:15Z",
+  "start": "2015-01-02",
+  "end": "2026-04-30",
+  "n_obs": 2930,
+  "static_correlation": {
+    "asset_a": "r_krw",
+    "asset_b": "r_skhynix",
+    "n_obs": 2930,
+    "pearson": -0.14014310236935565,
+    "spearman": -0.1177644236592131
+  },
+  "notes": [
+    "USD/KRW is quoted in KRW per USD; a positive r_krw therefore means KRW depreciation against the dollar. SK Hynix is KOSPI-listed and quoted in KRW, so its log return is in local currency terms.",
+    "Spearman is computed via the rank-then-rolling-correlation approach so the same 252-day window and minimum-periods rule applies to both methods. Direct .corr(method='spearman') is not available inside a rolling object in current pandas."
+  ]
+}

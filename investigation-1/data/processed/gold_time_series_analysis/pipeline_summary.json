@@ -1,5 +1,5 @@
 {
-  "run_at": "2026-05-30T00:14:34Z",
+  "run_at": "2026-05-30T00:32:30Z",
   "start": "2015-01-02",
   "end": "2026-05-29",
   "n_obs": 2935,
@@ -15,9 +15,9 @@
       "gold_median_bps": 5.4475134898357425,
       "gold_std_bps": 103.58075370026413,
       "gold_hit_rate_positive": 0.5281207133058985,
-      "semi_mean_bps": -49.215546492106796,
-      "corr_pearson": 0.10182063367643711,
-      "corr_spearman": 0.024248872932648075
+      "semi_mean_bps": -49.21554540535133,
+      "corr_pearson": 0.10182092996269043,
+      "corr_spearman": 0.024262972880232055
     },
     {
       "ticker": "samsung",
@@ -27,8 +27,8 @@
       "gold_median_bps": 0.0,
       "gold_std_bps": 135.45730550958658,
       "gold_hit_rate_positive": 0.49469964664310956,
-      "semi_mean_bps": -58.89824991768832,
-      "corr_pearson": 0.15742237446077328,
+      "semi_mean_bps": -58.89826218512749,
+      "corr_pearson": 0.1574232452472761,
       "corr_spearman": 0.06790777363423976
     },
     {
@@ -39,8 +39,8 @@
       "gold_median_bps": 5.8578222243621525,
       "gold_std_bps": 147.87232450821546,
       "gold_hit_rate_positive": 0.5223880597014925,
-      "semi_mean_bps": -66.24109540190491,
-      "corr_pearson": 0.197705753968558,
+      "semi_mean_bps": -66.24113822039176,
+      "corr_pearson": 0.1977060752647514,
       "corr_spearman": 0.10942792025746383
     },
     {
@@ -51,9 +51,9 @@
       "gold_median_bps": 2.634836739012769,
       "gold_std_bps": 106.45101283278626,
       "gold_hit_rate_positive": 0.5130315500685871,
-      "semi_mean_bps": -55.250934201161904,
-      "corr_pearson": 0.12651906526468457,
-      "corr_spearman": 0.0716794474510902
+      "semi_mean_bps": -55.25095199387845,
+      "corr_pearson": 0.1265189557678754,
+      "corr_spearman": 0.07164501956879991
     },
     {
       "ticker": "skhynix",
@@ -63,9 +63,9 @@
       "gold_median_bps": 1.352716223075312,
       "gold_std_bps": 138.66132648068736,
       "gold_hit_rate_positive": 0.5038759689922481,
-      "semi_mean_bps": -68.04913464463294,
-      "corr_pearson": 0.2008094266643553,
-      "corr_spearman": 0.1322172301845187
+      "semi_mean_bps": -68.04917752388363,
+      "corr_pearson": 0.2008096627242406,
+      "corr_spearman": 0.13227525822077854
     },
     {
       "ticker": "skhynix",
@@ -75,8 +75,8 @@
       "gold_median_bps": 12.798782157226185,
       "gold_std_bps": 132.61085960667472,
       "gold_hit_rate_positive": 0.5450236966824644,
-      "semi_mean_bps": -48.91935986738643,
-      "corr_pearson": 0.12052441239067846,
+      "semi_mean_bps": -48.91937854409182,
+      "corr_pearson": 0.12052428815517265,
       "corr_spearman": 0.01694772412528503
     },
     {
@@ -87,9 +87,9 @@
       "gold_median_bps": 1.7523692601439933,
       "gold_std_bps": 113.16346729274528,
       "gold_hit_rate_positive": 0.5075445816186557,
-      "semi_mean_bps": -46.52350797390643,
-      "corr_pearson": 0.10801047963188677,
-      "corr_spearman": 0.043230194481675324
+      "semi_mean_bps": -46.5235431259034,
+      "corr_pearson": 0.10801024472677766,
+      "corr_spearman": 0.04324400924184837
     },
     {
       "ticker": "soxx",
@@ -99,8 +99,8 @@
       "gold_median_bps": 0.0,
       "gold_std_bps": 137.7856541581517,
       "gold_hit_rate_positive": 0.49122807017543857,
-      "semi_mean_bps": -66.59186503987078,
-      "corr_pearson": 0.14318244316919954,
+      "semi_mean_bps": -66.5919524761197,
+      "corr_pearson": 0.14318213676603542,
       "corr_spearman": 0.0730998086187783
     },
     {
@@ -111,8 +111,8 @@
       "gold_median_bps": 3.0678476583068104,
       "gold_std_bps": 137.29129534393232,
       "gold_hit_rate_positive": 0.5093167701863354,
-      "semi_mean_bps": -48.42574337966833,
-      "corr_pearson": 0.18919215152143276,
+      "semi_mean_bps": -48.42579507417729,
+      "corr_pearson": 0.1891918086654829,
       "corr_spearman": 0.14444719916993518
     }
   ],
@@ -146,12 +146,12 @@
     "no_vol_filter__spearman": {
       "r_gold": {
         "r_gold": 1.0,
-        "r_samsung": 0.0281,
+        "r_samsung": 0.028,
         "r_skhynix": 0.0647,
         "r_soxx": 0.0425
       },
       "r_samsung": {
-        "r_gold": 0.0281,
+        "r_gold": 0.028,
         "r_samsung": 1.0,
         "r_skhynix": 0.5504,
         "r_soxx": 0.0648
@@ -198,12 +198,12 @@
     "high_vix__spearman": {
       "r_gold": {
         "r_gold": 1.0,
-        "r_samsung": 0.0962,
+        "r_samsung": 0.0961,
         "r_skhynix": 0.1229,
         "r_soxx": 0.0828
       },
       "r_samsung": {
-        "r_gold": 0.0962,
+        "r_gold": 0.0961,
         "r_samsung": 1.0,
         "r_skhynix": 0.7162,
         "r_soxx": 0.0603
@@ -212,12 +212,12 @@
         "r_gold": 0.1229,
         "r_samsung": 0.7162,
         "r_skhynix": 1.0,
-        "r_soxx": 0.1508
+        "r_soxx": 0.1507
       },
       "r_soxx": {
         "r_gold": 0.0828,
         "r_samsung": 0.0603,
-        "r_skhynix": 0.1508,
+        "r_skhynix": 0.1507,
         "r_soxx": 1.0
       }
     },
