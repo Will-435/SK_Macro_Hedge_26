@@ -16,7 +16,7 @@ Sign convention:
     local currency terms.
 
 Run:
-    python krw_skhynix_correlation.py --start 2015-01-01 --end 2026-05-01
+    python krw_skhynix_correlation.py (start 2015-01-01, end 2026-05-01)
 """
 
 # Imports
@@ -45,7 +45,7 @@ import yfinance as yf
 KRW_NAME = "krw"
 KRW_SYMBOL = "KRW=X"
 SKHYNIX_NAME = "skhynix"
-SKHYNIX_SYMBOL = "000660.KS"
+SKHYNIX_SYMBOL = "000660.KS" # Because this is an asset on the korean stock exchange
 
 # Calendar and window sizes.
 TRADING_DAYS_PER_YEAR = 252
@@ -447,20 +447,20 @@ def plot_rolling_correlation(rolling_frame: pd.DataFrame) -> Path:
     ax.plot(
         spearman_series.index, spearman_series.values,
         color = SPEARMAN_LINE_COLOUR, lw = ROLLING_LINE_LINEWIDTH,
-        label = "Spearman",
+        label = "Spearman rank",
     )
     ax.axhline(
         0, color = REFERENCE_AXIS_COLOUR, lw = REFERENCE_AXIS_LINEWIDTH,
     )
     ax.set_title(
-        f"Rolling {ROLLING_CORR_WINDOW}-day correlation: KRW vs SK Hynix"
+        f"Rolling {ROLLING_CORR_WINDOW} day correlation: KRW vs SK Hynix"
     )
     ax.set_ylabel("Correlation coefficient")
     ax.legend(loc = "upper left")
     fig.tight_layout()
     add_caption(
         fig,
-        "Rolling 252-day Pearson and Spearman rank correlation between "
+        "Rolling 252 day Pearson and Spearman-rank correlation between "
         "the daily log return of USD/KRW and SK Hynix (000660.KS). "
         "Positive 'r_krw' means KRW depreciation against the dollar, so a "
         "positive correlation here means SK Hynix tends to rise on KRW "
@@ -517,7 +517,7 @@ def configure_plot_style() -> None:
         * None
 
     OUTPUTS:
-        * None. Mutates plt.rcParams.
+        * None. This just applies the global variables defined in the preamble.
     """
     sns.set_style(SEABORN_STYLE)
     plt.rcParams.update({

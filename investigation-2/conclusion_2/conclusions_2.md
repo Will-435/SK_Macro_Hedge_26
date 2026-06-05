@@ -2,13 +2,15 @@
 
 ## 1. No Structural Hedge
 
-Scanned 87 assets (incl. 22 crypto) vs NASDAQ. Strongest inverse: TLT, IEF, IEI, GOVT, SHY at ~−0.10 Spearman / −0.13 Pearson. Nothing clears the −0.5 conservative threshold. No tradeable daily-frequency hedge exists.
+Scanned 87 assets (incl. 22 crypto) vs NASDAQ. Strongest inverse: TLT, IEF, IEI, GOVT, SHY at ~−0.10 Spearman / −0.13 Pearson. Nothing clears the −0.5 threshold that I set (but this is arbitrary). No tradeable daily-frequency hedge exists.
 
 ## 2. Daily vs Long-Horizon
 
 KRW vs SK Hynix daily log returns: **Pearson −0.14, Spearman −0.12** (n = 2,930). Rolling 252-day stays between −0.05 and −0.25.
 
 KOSPI, SK Hynix and KRW have all trended together since 2021. The trend is anti-correlated. Daily returns do not see it. Two horizons, two models.
+
+The SK Hynix Spearman ladder (`skhynix_spearman_ladder.png`) re-runs the cross-asset scan with SK Hynix as the reference instead of NASDAQ, and pins USD/KRW on regardless of rank. Full sample, n = 3,937: USD/KRW is the only negative rung at Spearman −0.11 / Pearson −0.14. Every strong rung is a positive co-mover — KOSPI +0.53, KOSDAQ +0.35, EWY +0.30, then EM / DM / semis ETFs. These are substitutes, not hedges. USD/KRW is the only structurally inverse asset against SK Hynix but the daily rank correlation is too weak to hedge on its own.
 
 ## 3. Driver is Yield Spreads
 
