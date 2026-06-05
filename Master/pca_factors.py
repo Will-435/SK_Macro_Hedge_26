@@ -5,6 +5,36 @@ Builds a stationary, daily frequency panel of factors relevant to a four week
 (twenty trading day) USD KRW return forecast, then reduces the panel to
 principal components for downstream conditional sampling in bootstrap_pdf.py.
 
+DATA SOURCE ACCESS CONSTRAINT
+
+The Bank of Korea ECOS API is restricted to Korean residents and nationals,
+so it cannot be used here. Every factor is therefore drawn from sources that
+are free and open to non Korean users, namely yfinance and the Federal
+Reserve FRED API. The consequences of this constraint are recorded below.
+
+FACTORS REPLACED OR DROPPED RELATIVE TO AN ECOS BUILD
+
+Daily foreign equity and bond flows are an ECOS only daily series. They are
+replaced by the United States listed iShares MSCI South Korea ETF (EWY) as a
+free daily proxy for foreign appetite toward Korean equities. EWY is priced
+in dollars and moves with foreign positioning, so its log return is a usable
+stand in for net foreign flow direction. It is a price based proxy, not a
+true flow measurement, which is a known limitation.
+
+The Korea ten year government bond yield is daily on ECOS. The free
+substitute is the OECD ten year government bond yield for Korea on FRED
+(IRLTLT01KRM156N), which is monthly. This is a frequency downgrade: the daily
+yield path is lost and the monthly value is forward filled across the daily
+grid, so the level and the derived yield spread only step once per month.
+
+Trade balance, current account and resident foreign currency deposits are
+ECOS monthly series with no free, currently maintained equivalent for non
+Korean users. The OECD trade balance series for Korea on FRED is discontinued
+(it stops in late 2024) and the current account series is quarterly, so both
+would be stale or near constant across the recent window that the model
+conditions on. They are dropped rather than wired up as misleading stale
+columns.
+
 EXCLUDED CANDIDATE FACTORS
 
 Two macro candidates were deliberately excluded because they operate on the
@@ -49,59 +79,60 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 
 
-FRED_API = "fred api key goes here"
-ECOS_API = "bok ecos api key goes here"
+FRED_API = "cfa3f4e2b7a6b802ab2df38002ecca10"
 
 LOOKBACK_YEARS = 10
 LOOKBACK_BUFFER_DAYS = 60
 DAYS_PER_YEAR_CALENDAR = 365.25
 
 FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
-ECOS_BASE_URL = "https://ecos.bok.or.kr/api/StatisticSearch"
-ECOS_PAGE_SIZE = 100000
-ECOS_MISSING_VALUE_STRING = "."
+FRED_MISSING_VALUE_STRING = "."
 
 FIGURE_DPI = 150
 SCREE_FIGSIZE = (10, 6)
 SCREE_BAR_ALPHA = 0.6
 
 # yfinance tickers. The map key is the internal feature name carried through
-# the rest of the pipeline. The value is the yfinance ticker symbol.
+# the rest of the pipeline. The value is the yfinance ticker symbol. EWY is
+# the iShares MSCI South Korea ETF, used as a free daily proxy for foreign
+# appetite toward Korean equities in place of the ECOS only foreign flow data.
 YFINANCE_TICKERS = {
     "usdkrw": "KRW=X",
     "dxy": "DX-Y.NYB",
-    "usdcnh": "CNH=X",
+    # Offshore USD CNH (CNH=X) is not currently served by yfinance, so onshore
+    # USD CNY (CNY=X) is used instead. The two track within a few pips and are
+    # interchangeable as a renminbi co movement signal for the won.
+    "usdcny": "CNY=X",
     "brent": "BZ=F",
     "wti": "CL=F",
     "natgas_henry_hub": "NG=F",
     "kospi": "^KS11",
     "semis_etf": "SOXX",
     "vix": "^VIX",
+    "korea_equity_etf": "EWY",
 }
 
-# ECOS statistical table codes. The codes below are illustrative placeholders
-# the user must verify against the live ECOS catalogue before running. The
-# tuple is (table code, cycle, item code).
-ECOS_STAT_CODES = {
-    "foreign_equity_flow":  ("731Y004", "D", "1000000"),
-    "foreign_bond_flow":    ("731Y004", "D", "2000000"),
-    "kr_10y_yield":         ("817Y002", "D", "010210000"),
-    "trade_balance":        ("301Y013", "M", "1000"),
-    "current_account":      ("301Y013", "M", "1000"),
-    "rfc_deposits":         ("104Y014", "M", "BMAA1"),
+# FRED daily series. The map key is the internal feature name and the value is
+# the FRED series identifier.
+FRED_DAILY_SERIES = {
+    "us_10y_yield": "DGS10",
 }
 
-# Calendar lag between a Korean monthly macro reference period end and the
-# real world release date. These lags ensure no forward looking information
-# leaks into the model.
+# FRED monthly macro series. The Korea ten year yield is the only free,
+# currently maintained Korean macro series available to non Korean users. It
+# is monthly and must be lagged to release and forward filled onto the daily
+# grid.
+FRED_MONTHLY_MACRO_SERIES = {
+    "kr_10y_yield": "IRLTLT01KRM156N",
+}
+
+# Calendar lag between a monthly macro reference period end and the real world
+# release date. This guards against forward looking leakage from a monthly
+# value being stamped onto dates before it was actually published. Thirty days
+# is a conservative allowance for the OECD republication delay on FRED.
 KOREA_MACRO_RELEASE_LAG_DAYS = {
-    "trade_balance":   20,
-    "current_account": 35,
-    "rfc_deposits":    25,
+    "kr_10y_yield": 30,
 }
-
-DAILY_ECOS_SERIES = ("foreign_equity_flow", "foreign_bond_flow", "kr_10y_yield")
-MONTHLY_ECOS_SERIES = ("trade_balance", "current_account", "rfc_deposits")
 
 
 def fetch_fred_series(series_code = None, start_date = None, end_date = None):
@@ -130,7 +161,7 @@ def fetch_fred_series(series_code = None, start_date = None, end_date = None):
     parsed_dates = []
     parsed_values = []
     for observation in observations:
-        if observation["value"] == ECOS_MISSING_VALUE_STRING:
+        if observation["value"] == FRED_MISSING_VALUE_STRING:
             continue
         parsed_dates.append(pd.Timestamp(observation["date"]))
         parsed_values.append(float(observation["value"]))
@@ -139,56 +170,6 @@ def fetch_fred_series(series_code = None, start_date = None, end_date = None):
         index = pd.DatetimeIndex(parsed_dates),
         name = series_code,
     )
-
-
-def fetch_ecos_series(stat_code = None, cycle = None, item_code = None, start_date = None, end_date = None):
-    """
-    Pull a single Bank of Korea ECOS statistical series and return it as a
-    pandas Series indexed by the reference period end timestamp.
-
-    INPUTS:
-        * stat code as the ECOS table identifier
-        * cycle as D for daily or M for monthly
-        * item code identifying the row within the table
-        * start date as yyyymmdd for daily or yyyymm for monthly
-        * end date in the same format as start date
-
-    OUTPUTS:
-        * pandas Series indexed by reference period timestamp
-    """
-    request_url = (
-        f"{ECOS_BASE_URL}/{ECOS_API}/json/en/1/{ECOS_PAGE_SIZE}/"
-        f"{stat_code}/{cycle}/{start_date}/{end_date}/{item_code}"
-    )
-    response = requests.get(request_url, timeout = 30)
-    response.raise_for_status()
-    payload = response.json()
-    if "StatisticSearch" not in payload:
-        return pd.Series(dtype = float, name = stat_code)
-    rows = payload["StatisticSearch"].get("row", [])
-    parsed_dates = []
-    parsed_values = []
-    for row in rows:
-        time_string = row["TIME"]
-        if cycle == "D":
-            period_timestamp = pd.Timestamp(time_string)
-        elif cycle == "M":
-            year_part = time_string[:4]
-            month_part = time_string[4:6]
-            period_timestamp = pd.Timestamp(f"{year_part}-{month_part}-01") + pd.offsets.MonthEnd(0)
-        else:
-            period_timestamp = pd.Timestamp(time_string)
-        try:
-            parsed_value = float(row["DATA_VALUE"])
-        except (ValueError, TypeError):
-            continue
-        parsed_dates.append(period_timestamp)
-        parsed_values.append(parsed_value)
-    return pd.Series(
-        data = np.array(parsed_values, dtype = float),
-        index = pd.DatetimeIndex(parsed_dates),
-        name = stat_code,
-    ).sort_index()
 
 
 def lag_macro_to_release_date(monthly_series = None, lag_days = None):
@@ -223,7 +204,10 @@ def transform_log_returns(price_series = None):
     OUTPUTS:
         * log return series with the same index
     """
-    return np.log(price_series).diff()
+    # Non positive prints are data feed glitches, not real prices. Mask them to
+    # missing so the logarithm stays defined and no spurious return is created.
+    positive_prices = price_series.where(price_series > 0)
+    return np.log(positive_prices).diff()
 
 
 def transform_first_difference(level_series = None):
@@ -241,58 +225,25 @@ def transform_first_difference(level_series = None):
     return level_series.diff()
 
 
-def transform_standardised_level(signed_series = None):
-    """
-    Pass a signed quantity through unchanged ready for the panel wide
-    standardisation step. Used for flow variables such as foreign equity
-    flows, foreign bond flows, trade balance and current account, where the
-    sign carries information and a logarithm is mathematically undefined.
-
-    INPUTS:
-        * signed level series
-
-    OUTPUTS:
-        * series cast to float without further transformation
-    """
-    return signed_series.astype(float)
-
-
-def transform_rfc_deposits(deposits_series = None):
-    """
-    Transform resident foreign currency deposit balances. Apply log
-    differences if strictly positive, otherwise fall back to a plain first
-    difference. The series is reported in USD billions and is normally
-    positive, but the fallback protects against any sign anomaly.
-
-    INPUTS:
-        * resident foreign currency deposit level series
-
-    OUTPUTS:
-        * stationary deposits series
-    """
-    if (deposits_series.dropna() > 0).all():
-        return np.log(deposits_series).diff()
-    return deposits_series.diff()
-
-
+# Strictly positive price and index series take log returns. Yields and the
+# derived yield spread take first differences because they can sit near zero
+# or turn negative, where a logarithm is unstable or undefined. No signed flow
+# transform is needed because the ECOS flow series have been replaced by the
+# EWY price proxy, which is itself a strictly positive price.
 FEATURE_TRANSFORMS = {
     "usdkrw":               transform_log_returns,
     "dxy":                  transform_log_returns,
-    "usdcnh":               transform_log_returns,
+    "usdcny":               transform_log_returns,
     "brent":                transform_log_returns,
     "wti":                  transform_log_returns,
     "natgas_henry_hub":     transform_log_returns,
     "kospi":                transform_log_returns,
     "semis_etf":            transform_log_returns,
     "vix":                  transform_log_returns,
+    "korea_equity_etf":     transform_log_returns,
     "us_10y_yield":         transform_first_difference,
     "kr_10y_yield":         transform_first_difference,
     "kr_us_yield_spread":   transform_first_difference,
-    "foreign_equity_flow":  transform_standardised_level,
-    "foreign_bond_flow":    transform_standardised_level,
-    "trade_balance":        transform_standardised_level,
-    "current_account":      transform_standardised_level,
-    "rfc_deposits":         transform_rfc_deposits,
 }
 
 
@@ -344,43 +295,28 @@ def build_raw_factor_panel(lookback_years = LOOKBACK_YEARS):
         end_date = end_date.isoformat(),
     )
 
-    us_10y_yield = fetch_fred_series(
-        series_code = "DGS10",
-        start_date = start_date.isoformat(),
-        end_date = end_date.isoformat(),
-    )
-    us_10y_yield.name = "us_10y_yield"
-
-    ecos_start_daily = start_date.strftime("%Y%m%d")
-    ecos_end_daily = end_date.strftime("%Y%m%d")
-    ecos_start_monthly = start_date.strftime("%Y%m")
-    ecos_end_monthly = end_date.strftime("%Y%m")
-
-    daily_ecos_frames = {}
-    for series_name in DAILY_ECOS_SERIES:
-        stat_code, cycle, item_code = ECOS_STAT_CODES[series_name]
-        daily_series = fetch_ecos_series(
-            stat_code = stat_code,
-            cycle = cycle,
-            item_code = item_code,
-            start_date = ecos_start_daily,
-            end_date = ecos_end_daily,
+    fred_daily_frames = {}
+    for series_name, series_code in FRED_DAILY_SERIES.items():
+        daily_series = fetch_fred_series(
+            series_code = series_code,
+            start_date = start_date.isoformat(),
+            end_date = end_date.isoformat(),
         )
         daily_series.name = series_name
-        daily_ecos_frames[series_name] = daily_series
+        fred_daily_frames[series_name] = daily_series
 
-    monthly_ecos_frames = {}
-    for series_name in MONTHLY_ECOS_SERIES:
-        stat_code, cycle, item_code = ECOS_STAT_CODES[series_name]
-        monthly_raw = fetch_ecos_series(
-            stat_code = stat_code,
-            cycle = cycle,
-            item_code = item_code,
-            start_date = ecos_start_monthly,
-            end_date = ecos_end_monthly,
+    fred_monthly_frames = {}
+    for series_name, series_code in FRED_MONTHLY_MACRO_SERIES.items():
+        monthly_raw = fetch_fred_series(
+            series_code = series_code,
+            start_date = start_date.isoformat(),
+            end_date = end_date.isoformat(),
         )
+        # FRED stamps a monthly observation at the first of the month. Snap to
+        # the month end reference period before applying the release lag.
+        monthly_raw.index = monthly_raw.index + pd.offsets.MonthEnd(0)
         monthly_raw.name = series_name
-        monthly_ecos_frames[series_name] = lag_macro_to_release_date(
+        fred_monthly_frames[series_name] = lag_macro_to_release_date(
             monthly_series = monthly_raw,
             lag_days = KOREA_MACRO_RELEASE_LAG_DAYS[series_name],
         )
@@ -391,12 +327,10 @@ def build_raw_factor_panel(lookback_years = LOOKBACK_YEARS):
     for column_name in market_prices.columns:
         factor_panel[column_name] = market_prices[column_name].reindex(business_day_index)
 
-    factor_panel["us_10y_yield"] = us_10y_yield.reindex(business_day_index).ffill()
+    for series_name, series_data in fred_daily_frames.items():
+        factor_panel[series_name] = series_data.reindex(business_day_index).ffill()
 
-    for series_name, series_data in daily_ecos_frames.items():
-        factor_panel[series_name] = series_data.reindex(business_day_index)
-
-    for series_name, series_data in monthly_ecos_frames.items():
+    for series_name, series_data in fred_monthly_frames.items():
         factor_panel[series_name] = series_data.reindex(business_day_index).ffill()
 
     factor_panel["kr_us_yield_spread"] = factor_panel["kr_10y_yield"] - factor_panel["us_10y_yield"]
@@ -454,7 +388,11 @@ def fit_pca(standardised_panel = None):
         * dictionary with keys scores, loadings, explained variance ratio,
           feature columns
     """
-    clean_panel = standardised_panel.dropna(how = "any")
+    # Drop any column that is entirely missing before the row wise drop. A
+    # single dead data feed would otherwise turn every row into a row with a
+    # missing value and silently empty the whole panel.
+    populated_panel = standardised_panel.dropna(axis = 1, how = "all")
+    clean_panel = populated_panel.dropna(how = "any")
     centred_matrix = clean_panel.values - clean_panel.values.mean(axis = 0, keepdims = True)
     sample_count = centred_matrix.shape[0]
     _, singular_values, right_singular_t = np.linalg.svd(centred_matrix, full_matrices = False)
