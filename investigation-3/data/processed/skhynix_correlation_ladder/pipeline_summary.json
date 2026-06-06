@@ -1,0 +1,22 @@
+{
+  "run_at": "2026-06-06T23:43:28Z",
+  "start": "2015-01-01",
+  "end": "2026-04-30",
+  "universe_attempted": 99,
+  "universe_fetched": 99,
+  "top_n": 18,
+  "dollar_legs": {
+    "dxy": {
+      "symbol": "DX-Y.NYB",
+      "spearman": -0.032146527857701966,
+      "pearson": -0.056520184114174477,
+      "n_obs": 3937
+    },
+    "usd_krw": {
+      "symbol": "KRW=X",
+      "spearman": -0.10739931794637378,
+      "pearson": -0.13927793387680742,
+      "n_obs": 3937
+    }
+  }
+}

@@ -72,6 +72,8 @@ off Korea specific risk pricing for a broad global risk on risk off signal.
 
 
 import datetime as dt
+import os
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import requests
@@ -79,14 +81,44 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 
 
-FRED_API = "cfa3f4e2b7a6b802ab2df38002ecca10"
-
 LOOKBACK_YEARS = 10
 LOOKBACK_BUFFER_DAYS = 60
 DAYS_PER_YEAR_CALENDAR = 365.25
 
 FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
 FRED_MISSING_VALUE_STRING = "."
+FRED_API_PLACEHOLDER = "fred api key goes here"
+
+
+def load_fred_api_key():
+    """
+    Resolve the FRED API key without ever hard-coding it in the source. The
+    environment variable FRED_API wins; otherwise a .env file is searched for
+    from this file's directory upward to the repository root. Falls back to the
+    placeholder so an un-keyed checkout still imports without error.
+
+    INPUTS:
+        * none, reads the environment and any .env on the path to the root
+
+    OUTPUTS:
+        * the FRED API key string, or the placeholder if none is configured
+    """
+    environment_value = os.environ.get("FRED_API")
+    if environment_value:
+        return environment_value
+    module_directory = Path(__file__).resolve().parent
+    for directory in [module_directory, *module_directory.parents]:
+        env_path = directory / ".env"
+        if env_path.exists():
+            for raw_line in env_path.read_text().splitlines():
+                stripped_line = raw_line.strip()
+                if stripped_line.startswith("FRED_API"):
+                    _, _, raw_value = stripped_line.partition("=")
+                    return raw_value.strip().strip('"').strip("'")
+    return FRED_API_PLACEHOLDER
+
+
+FRED_API = load_fred_api_key()
 
 FIGURE_DPI = 150
 SCREE_FIGSIZE = (10, 6)

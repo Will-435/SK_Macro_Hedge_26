@@ -1,0 +1,16 @@
+{
+  "run_at": "2026-06-06T13:44:43Z",
+  "start": "2015-01-02",
+  "end": "2026-06-05",
+  "n_obs": 2933,
+  "static_pearson": {
+    "asset_a": "r_ftse100",
+    "asset_b": "r_skhynix",
+    "n_obs": 2933,
+    "pearson": 0.2127089704536852
+  },
+  "notes": [
+    "London and Seoul sessions do not overlap: Seoul closes before London opens, so a same-calendar-day FTSE return reflects information SK Hynix had not yet traded on. The contemporaneous Pearson therefore understates the true linkage, which SK Hynix absorbs at its next open.",
+    "Both series are local-currency price indices, FTSE 100 in GBP and SK Hynix in KRW; returns are in local terms and no FX leg is modelled."
+  ]
+}

@@ -43,6 +43,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import warnings
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -54,6 +55,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
+import requests
 import seaborn as sns
 import yfinance as yf
 
@@ -185,18 +187,18 @@ YIELD_TICKERS: Dict[str, Dict[str, str]] = {
         "us_30y_yield":  "^TYX",
         "us_3m_yield":   "^IRX",
     },
-    # International sovereign yield coverage on Yahoo Finance is patchy.
-    # The candidates below are tried defensively and silently skipped if
-    # the request returns no data. The country bond ETFs above provide
-    # broader, more reliable coverage for the swap-line countries.
+    # International sovereign yield coverage on Yahoo Finance is unreliable, so
+    # these are pulled from the FRED API instead (OECD monthly 10-year
+    # government bond yields). Values below are FRED series IDs, not Yahoo
+    # symbols, and are routed through fetch_fred_series by their category.
     "international_bond_yield_candidate": {
-        "germany_10y_yield":      "DE10Y.B",
-        "uk_10y_yield":           "GB10Y.B",
-        "japan_10y_yield":        "JP10Y.B",
-        "canada_10y_yield":       "CA10Y.B",
-        "switzerland_10y_yield":  "CH10Y.B",
-        "korea_10y_yield":        "KR10Y.B",
-        "australia_10y_yield":    "AU10Y.B",
+        "germany_10y_yield":      "IRLTLT01DEM156N",
+        "uk_10y_yield":           "IRLTLT01GBM156N",
+        "japan_10y_yield":        "IRLTLT01JPM156N",
+        "canada_10y_yield":       "IRLTLT01CAM156N",
+        "switzerland_10y_yield":  "IRLTLT01SEM156N",
+        "korea_10y_yield":        "IRLTLT01KRM156N",
+        "australia_10y_yield":    "IRLTLT01AUM156N",
     },
 }
 
@@ -305,6 +307,48 @@ VISUALS_DIR = PROJECT_ROOT / "visuals" / SCRIPT_SUBDIR
 
 # CLI defaults.
 DEFAULT_START_DATE = "2015-01-01"
+
+# FRED API access. The international sovereign yields are pulled from the
+# Federal Reserve FRED API rather than yfinance, whose coverage of those yields
+# is unreliable. Any asset whose category is listed in FRED_CATEGORIES carries
+# a FRED series ID instead of a Yahoo symbol. The key is read from a .env file
+# (which is git-ignored) so it is never committed; the style-guide placeholder
+# is used when no key is configured.
+FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
+FRED_MISSING_VALUE_STRING = "."
+FRED_CATEGORIES = {"international_bond_yield_candidate"}
+FRED_API_PLACEHOLDER = "fred api key goes here"
+
+
+def load_fred_api_key() -> str:
+    """
+    Resolve the FRED API key without ever hard-coding it in the source. The
+    environment variable FRED_API wins; otherwise a .env file is searched for
+    from this file's directory upward to the repository root. Falls back to the
+    style-guide placeholder so an un-keyed checkout still imports without error.
+
+    INPUTS:
+        * None (reads the environment and any .env on the path to the root)
+
+    OUTPUTS:
+        * The FRED API key string, or the placeholder if none is configured.
+    """
+    environment_value = os.environ.get("FRED_API")
+    if environment_value:
+        return environment_value
+    module_directory = Path(__file__).resolve().parent
+    for directory in [module_directory, *module_directory.parents]:
+        env_path = directory / ".env"
+        if env_path.exists():
+            for raw_line in env_path.read_text().splitlines():
+                stripped_line = raw_line.strip()
+                if stripped_line.startswith("FRED_API"):
+                    _, _, raw_value = stripped_line.partition("=")
+                    return raw_value.strip().strip('"').strip("'")
+    return FRED_API_PLACEHOLDER
+
+
+FRED_API = load_fred_api_key()
 
 
 # Logging.
@@ -441,6 +485,50 @@ def save_csv(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
 
 # Universe construction.
 
+def fetch_fred_series(series_id: str, start_date: str, end_date: str) -> Optional[pd.Series]:
+    """
+    Pull one FRED series via the public REST endpoint and return it as a
+    date-indexed Series. Returns None on any failure or empty response so the
+    calling loop can continue without aborting the run. Used for the
+    international sovereign yields, whose FRED series are monthly.
+
+    INPUTS:
+        * series_id   : FRED series identifier, for example IRLTLT01KRM156N
+        * start_date  : ISO date string, inclusive
+        * end_date    : ISO date string, exclusive
+
+    OUTPUTS:
+        * date-indexed float Series sorted ascending, or None if unavailable.
+    """
+    request_parameters = {
+        "series_id": series_id,
+        "api_key": FRED_API,
+        "file_type": "json",
+        "observation_start": start_date,
+        "observation_end": end_date,
+    }
+    try:
+        response = requests.get(FRED_BASE_URL, params = request_parameters, timeout = 30)
+        response.raise_for_status()
+    except Exception as fetch_error:
+        log.warning("Skipping FRED %s (request error: %s)", series_id, fetch_error)
+        return None
+    observations = response.json().get("observations", [])
+    parsed_dates: List[pd.Timestamp] = []
+    parsed_values: List[float] = []
+    for observation in observations:
+        if observation["value"] == FRED_MISSING_VALUE_STRING:
+            continue
+        parsed_dates.append(pd.Timestamp(observation["date"]))
+        parsed_values.append(float(observation["value"]))
+    if len(parsed_values) == 0:
+        return None
+    return pd.Series(
+        data = np.array(parsed_values, dtype = float),
+        index = pd.DatetimeIndex(parsed_dates),
+    ).sort_index()
+
+
 def build_asset_universe() -> List[AssetSpec]:
     """
     Flatten the PRICE_TICKERS and YIELD_TICKERS nested dictionaries into a
@@ -551,8 +639,14 @@ def fetch_universe_panel(
     """
     fetched_series: List[pd.Series] = []
     fetched_specs: List[AssetSpec] = []
+    fred_specs: List[AssetSpec] = []
 
     for asset_spec in universe:
+        # FRED-sourced categories carry FRED series IDs, not Yahoo symbols, and
+        # are fetched separately once the daily panel index is established.
+        if asset_spec.category in FRED_CATEGORIES:
+            fred_specs.append(asset_spec)
+            continue
         raw_frame = download_one_safe(asset_spec.symbol, start_date, end_date)
         if raw_frame is None:
             log.info("No data for %s (%s); skipping",
@@ -568,6 +662,21 @@ def fetch_universe_panel(
 
     panel = pd.concat(fetched_series, axis = 1).dropna(how = "all")
     panel = panel.ffill(limit = PANEL_FFILL_LIMIT)
+
+    # FRED series are monthly. Reindex each onto the daily panel with forward
+    # fill so the latest published monthly value carries across the daily grid.
+    for asset_spec in fred_specs:
+        fred_series = fetch_fred_series(asset_spec.symbol, start_date, end_date)
+        if fred_series is None:
+            log.info("No FRED data for %s (%s); skipping",
+                     asset_spec.name, asset_spec.symbol)
+            continue
+        save_parquet(
+            fred_series.to_frame(name = asset_spec.name),
+            DATA_RAW_DIR, f"raw_{asset_spec.name}",
+        )
+        panel[asset_spec.name] = fred_series.reindex(panel.index, method = "ffill")
+        fetched_specs.append(asset_spec)
 
     log.info(
         "Fetched %d of %d universe assets",
