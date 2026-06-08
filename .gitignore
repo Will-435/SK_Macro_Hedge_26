@@ -1,3 +1,8 @@
 .DS_Store
 __pycache__/
 .env
+rep_corr_matrix.sv
+rep_corr_matrix.csv
+rep_matrics
+rep_matrics.cpp
+rep_matrics_input.csv
