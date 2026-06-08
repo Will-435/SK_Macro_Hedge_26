@@ -1,6 +1,6 @@
 # SK_Macro_Hedge_26
 
-South Korean tech equity fallback — macro trade hedge research.
+South Korean tech equity fallback, macro trade hedge research.
 
 This repository hosts the research pipeline behind a macro trade that started life as a direct gold-vs-Korean-semis hedge thesis. We have since broadened into a portfolio-diversification reframing, following a lack of a constant positive Pearson (or other) correlation. The work is now organised into two seperate investigations, each living in its own subdirectory at the top of the repo.
 
