@@ -27,6 +27,15 @@
 
 static const double TRADING_DAYS_PER_YEAR = 252.0;
 
+// Backtest window: every statistic is computed over the most-recent
+// BACKTEST_WINDOW daily observations (the trailing 252 trading days / one year),
+// not the full ~2,778-day history. Set this above the sample length to revert to
+// the full sample. The rolling beta range uses a shorter window so there is
+// intra-year variation to report inside the one-year backtest.
+// The full 2,778-day sample will mix regimes and skew results.
+static const int BACKTEST_WINDOW = 252;
+static const int ROLLING_BETA_WINDOW = 63;
+
 // Convert a level series into daily log returns.
 std::vector<double> log_returns(const std::vector<double>& levels) {
     std::vector<double> returns;
@@ -125,6 +134,51 @@ double max_drawdown(const std::vector<double>& returns) {
         if (drawdown < worst) worst = drawdown;
     }
     return worst;
+}
+
+// Annualised Sharpe of the hedged book (asset minus hedge_ratio*market), rf = 0.
+double hedged_sharpe(const std::vector<double>& asset, const std::vector<double>& market, double hedge_ratio) {
+    std::vector<double> book(asset.size());
+    for (std::size_t index = 0; index < asset.size(); ++index)
+        book[index] = asset[index] - hedge_ratio * market[index];
+    return (mean_of(book) * TRADING_DAYS_PER_YEAR) / (stdev_of(book) * std::sqrt(TRADING_DAYS_PER_YEAR));
+}
+
+// Annualised variance of the hedged book.
+double hedged_variance(const std::vector<double>& asset, const std::vector<double>& market, double hedge_ratio) {
+    std::vector<double> book(asset.size());
+    for (std::size_t index = 0; index < asset.size(); ++index)
+        book[index] = asset[index] - hedge_ratio * market[index];
+    double daily = stdev_of(book);
+    return daily * daily * TRADING_DAYS_PER_YEAR;
+}
+
+// Gradient ASCENT on the hedged Sharpe over the hedge ratio, using a central
+// difference gradient. Returns the Sharpe-maximising hedge ratio.
+double ascend_sharpe(const std::vector<double>& asset, const std::vector<double>& market,
+                     double start, double learning_rate, int iterations) {
+    double hedge_ratio = start;
+    const double step = 1e-5;
+    for (int iteration = 0; iteration < iterations; ++iteration) {
+        double gradient = (hedged_sharpe(asset, market, hedge_ratio + step)
+                           - hedged_sharpe(asset, market, hedge_ratio - step)) / (2.0 * step);
+        hedge_ratio += learning_rate * gradient;
+    }
+    return hedge_ratio;
+}
+
+// Gradient DESCENT on the hedged variance over the hedge ratio. Returns the
+// variance-minimising hedge ratio, which must equal the beta as a sanity check.
+double descend_variance(const std::vector<double>& asset, const std::vector<double>& market,
+                        double start, double learning_rate, int iterations) {
+    double hedge_ratio = start;
+    const double step = 1e-5;
+    for (int iteration = 0; iteration < iterations; ++iteration) {
+        double gradient = (hedged_variance(asset, market, hedge_ratio + step)
+                           - hedged_variance(asset, market, hedge_ratio - step)) / (2.0 * step);
+        hedge_ratio -= learning_rate * gradient;
+    }
+    return hedge_ratio;
 }
 
 // Overlapping forward horizon-day log returns, stamped at the entry day, used
@@ -227,6 +281,15 @@ int main() {
         }
     }
 
+    // Restrict every series to the trailing BACKTEST_WINDOW observations so the
+    // whole report is a 252-day (one-year) backtest. One extra level is kept so
+    // the first daily log return falls inside the window.
+    for (auto& column : levels) {
+        std::vector<double>& series = column.second;
+        std::size_t keep = static_cast<std::size_t>(BACKTEST_WINDOW) + 1;
+        if (series.size() > keep) series.erase(series.begin(), series.end() - keep);
+    }
+
     std::vector<double> skhynix = log_returns(levels["skhynix"]);
     std::vector<double> kospi   = log_returns(levels["kospi"]);
     std::vector<double> krw     = log_returns(levels["krw"]);
@@ -262,6 +325,43 @@ int main() {
               << std::showpos << std::setprecision(2) << hedge_drag * 100.0 << "%\n" << std::noshowpos;
     report_performance("Unhedged", skhynix);
     report_performance("Hedged", hedged);
+
+    // ---- Section 5C: gradient optimisation of the hedge ratio ----
+    // Two gradient searches over the hedge ratio h of the book r_skh - h*r_kospi:
+    // descent on variance (recovers the beta) and ascent on Sharpe. Then test
+    // whether any h both cuts variance versus unhedged and lifts Sharpe.
+    double minvar_ratio = descend_variance(skhynix, kospi, 0.0, 1.0, 20000);
+    double maxsharpe_ratio = ascend_sharpe(skhynix, kospi, 0.0, 0.05, 100000);
+    double mean_skh_daily = mean_of(skhynix), mean_kospi_daily = mean_of(kospi);
+    double var_skh_daily = stdev_of(skhynix); var_skh_daily *= var_skh_daily;
+    double var_kospi_daily = stdev_of(kospi); var_kospi_daily *= var_kospi_daily;
+    double cov_daily = hedge_beta * var_kospi_daily;
+    double analytic_maxsharpe = (mean_kospi_daily * var_skh_daily - mean_skh_daily * cov_daily)
+                              / (mean_kospi_daily * cov_daily - mean_skh_daily * var_kospi_daily);
+
+    std::cout << "\nSECTION 5C  Hedge-ratio optimisation (gradient methods)\n";
+    std::cout << "Min-variance hedge ratio (gradient descent on variance): "
+              << std::fixed << std::setprecision(3) << minvar_ratio
+              << "   (analytic beta " << hedge_beta << ")\n";
+    std::cout << "Max-Sharpe hedge ratio  (gradient ascent on Sharpe):     "
+              << std::showpos << maxsharpe_ratio << std::noshowpos
+              << "   (analytic " << std::showpos << analytic_maxsharpe << std::noshowpos << ")\n";
+    std::cout << "Variance is below the unhedged book only for hedge ratios in (0, "
+              << std::setprecision(2) << 2.0 * hedge_beta << ")\n";
+    std::cout << "\n  hedge_ratio      Sharpe   ann_variance\n";
+    for (double ratio : {0.0, maxsharpe_ratio, hedge_beta}) {
+        std::cout << "  " << std::showpos << std::setw(9) << std::setprecision(3) << ratio << std::noshowpos
+                  << std::setw(12) << std::setprecision(3) << hedged_sharpe(skhynix, kospi, ratio)
+                  << std::setw(13) << std::setprecision(4) << hedged_variance(skhynix, kospi, ratio) << "\n";
+    }
+    bool win_win = (maxsharpe_ratio > 0.0 && maxsharpe_ratio < 2.0 * hedge_beta
+                    && hedged_sharpe(skhynix, kospi, maxsharpe_ratio) > hedged_sharpe(skhynix, kospi, 0.0));
+    std::cout << "\nIs there a hedge ratio that BOTH cuts variance and raises Sharpe? "
+              << (win_win ? "YES" : "NO") << "\n";
+    if (!win_win) {
+        std::cout << "  Sharpe peaks at a NEGATIVE hedge ratio (adding KOSPI exposure), which raises variance.\n";
+        std::cout << "  Every variance-reducing short hedge (h > 0) lowers Sharpe: the objectives conflict.\n";
+    }
 
     // ---- Section 6: scenario analysis on four-week (20-day) forward returns ----
     // Scenarios are defined by the SK Hynix four-week return distribution: the
@@ -317,8 +417,8 @@ int main() {
     }
 
     double beta_min, beta_mean, beta_max;
-    rolling_beta_range(skhynix, kospi, 252, beta_min, beta_mean, beta_max);
-    std::cout << "\nRolling 252d SK Hynix/KOSPI beta (sizing-rule range): min "
+    rolling_beta_range(skhynix, kospi, ROLLING_BETA_WINDOW, beta_min, beta_mean, beta_max);
+    std::cout << "\nRolling " << ROLLING_BETA_WINDOW << "d SK Hynix/KOSPI beta within the window (sizing-rule range): min "
               << std::setprecision(2) << beta_min << "  mean " << beta_mean
               << "  max " << beta_max << "\n";
 
@@ -346,26 +446,24 @@ int main() {
     const std::vector<double>& mag7_levels = levels["mag7"];
     double current_mag7_20d = std::log(mag7_levels.back() / mag7_levels[mag7_levels.size() - 1 - HORIZON]);
 
-    int window252 = 252;
-    std::vector<double> skh_recent(skhynix.end() - window252, skhynix.end());
-    std::vector<double> kospi_recent(kospi.end() - window252, kospi.end());
-    double current_beta = beta_of(skh_recent, kospi_recent);
-    double current_corr = pearson(skh_recent, kospi_recent);
+    double current_beta = beta_of(skhynix, kospi);
+    double current_corr = pearson(skhynix, kospi);
 
     const std::vector<double>& volume = levels["skh_volume"];
-    double sum_20 = 0, sum_252 = 0;
+    int long_volume_days = std::min<int>(252, static_cast<int>(volume.size()));
+    double sum_20 = 0, sum_long = 0;
     for (int i = 0; i < 20; ++i) sum_20 += volume[volume.size() - 1 - i];
-    for (int i = 0; i < 252; ++i) sum_252 += volume[volume.size() - 1 - i];
-    double liquidity_ratio = (sum_20 / 20.0) / (sum_252 / 252.0);
+    for (int i = 0; i < long_volume_days; ++i) sum_long += volume[volume.size() - 1 - i];
+    double liquidity_ratio = (sum_20 / 20.0) / (sum_long / long_volume_days);
 
-    std::cout << "\nSECTION 3C  Current risk-regime classification (as of last observation)\n";
+    std::cout << "\nSECTION 3C  Risk-regime classification (trailing 252-day window)\n";
     std::cout << "Vol regime    : 21d realised vol " << std::fixed << std::setprecision(1) << current_rv * 100
-              << "% annualised, " << std::setprecision(0) << rv_percentile << "th percentile of history\n";
+              << "% annualised, " << std::setprecision(0) << rv_percentile << "th percentile within the window\n";
     std::cout << "Risk appetite : trailing 4-week SK Hynix " << std::showpos << std::setprecision(1) << current_20d * 100
               << "% (risk-off <= " << low_threshold * 100 << "%, risk-on >= " << high_threshold * 100 << "%); Mag7 "
               << current_mag7_20d * 100 << "%\n" << std::noshowpos;
-    std::cout << "Correlation   : current 252d KOSPI corr " << std::showpos << std::setprecision(2) << current_corr
-              << ", beta " << current_beta << std::noshowpos << " (beta range " << beta_min << "-" << beta_max << ")\n";
+    std::cout << "Correlation   : 252-day KOSPI corr " << std::showpos << std::setprecision(2) << current_corr
+              << ", beta " << current_beta << std::noshowpos << " (63d rolling beta range " << beta_min << "-" << beta_max << ")\n";
     std::cout << "Liquidity     : 20d avg volume / 252d avg volume = " << std::setprecision(2) << liquidity_ratio
               << " (" << std::showpos << std::setprecision(0) << (liquidity_ratio - 1) * 100 << "% vs 1yr average)\n"
               << std::noshowpos;
