@@ -5,8 +5,7 @@ Focused two-asset correlation pipeline. Extracts the Pearson and Spearman
 rank correlations between the daily log returns of the USD/KRW exchange
 rate and SK Hynix (000660.KS).
 
-The full-sample Pearson and Spearman are written to a single-row CSV (and
-Parquet). A 252-day rolling Pearson and rolling Spearman are written to a
+The full-sample Pearson and Spearman are written to a single-row Parquet table. A 252-day rolling Pearson and rolling Spearman are written to a
 time-series Parquet and rendered onto one line chart for visual inspection.
 
 Sign convention:
@@ -109,7 +108,7 @@ log = logging.getLogger("krw-skhynix-correlation")
 class StaticCorrelationResult:
     """
     Full-sample Pearson and Spearman rank correlation between two daily
-    log-return series. Written to the single-row CSV that is this file's
+    log-return series. Written to the single-row Parquet table that is this file's
     primary deliverable.
 
     INPUTS:
@@ -175,26 +174,6 @@ def save_parquet(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
     directory.mkdir(parents = True, exist_ok = True)
     target_path = directory / f"{name_stem}.parquet"
     frame.to_parquet(target_path)
-    return target_path
-
-
-def save_csv(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
-    """
-    Write a DataFrame to CSV under the supplied directory. The static
-    correlation table is also written to CSV because it is the headline
-    deliverable that downstream notebooks and write-ups will read directly.
-
-    INPUTS:
-        * frame      : DataFrame to write
-        * directory  : target directory
-        * name_stem  : file name without extension
-
-    OUTPUTS:
-        * Path to the written CSV file.
-    """
-    directory.mkdir(parents = True, exist_ok = True)
-    target_path = directory / f"{name_stem}.csv"
-    frame.to_csv(target_path, index = False)
     return target_path
 
 
@@ -425,7 +404,7 @@ def plot_rolling_correlation(rolling_frame: pd.DataFrame) -> Path:
     Render the rolling Pearson and rolling Spearman correlations as two
     lines on a single axes. The chart is the headline visual for this
     file because it shows whether the static correlation reported in the
-    CSV reflects a stable relationship or is averaging across regime
+    Parquet table reflects a stable relationship or is averaging across regime
     flips.
 
     INPUTS:
@@ -537,8 +516,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
     Execute the end-to-end pipeline: fetch the price pair, compute daily
     log returns, extract the full-sample Pearson and Spearman rank
     correlations, compute the 252-day rolling versions of both, persist
-    every table as Parquet (and the headline static correlation as CSV
-    as well), render the rolling-correlation visual, and write a JSON
+    every table as Parquet, render the rolling-correlation visual, and write a JSON
     run summary.
 
     INPUTS:
@@ -568,7 +546,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
         "pearson":  static_result.pearson,
         "spearman": static_result.spearman,
     }])
-    save_csv(static_frame, DATA_PROCESSED_DIR, "static_correlations")
+    save_parquet(static_frame, DATA_PROCESSED_DIR, "static_correlations")
     save_parquet(static_frame, DATA_PROCESSED_DIR, "static_correlations")
 
     log.info("Computing rolling %dd Pearson and Spearman", ROLLING_CORR_WINDOW)
@@ -636,7 +614,7 @@ def main() -> None:
         * None
 
     OUTPUTS:
-        * None. Side effects: figure in VISUALS_DIR, Parquet and CSV
+        * None. Side effects: figure in VISUALS_DIR, Parquet
           tables in DATA_PROCESSED_DIR, raw caches in DATA_RAW_DIR, JSON
           summary in DATA_PROCESSED_DIR, stdout summary.
     """

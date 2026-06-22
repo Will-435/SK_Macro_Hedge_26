@@ -960,7 +960,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
     regime_mask = bearish_regime_mask(target_four_week, target_realised_vol)
     full_sample_mask = pd.Series(True, index = returns.index)
 
-    matrices_by_sample_and_method: Dict[tuple[str, str], pd.DataFrame]={}
+    matrices_by_sample_and_method: Dict[tuple[str, str], pd.DataFrame] = {}
     n_obs_by_sample: Dict[str, int] = {}
     for sample_label, mask in [
         ("full", full_sample_mask),

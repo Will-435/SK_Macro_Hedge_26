@@ -5,7 +5,7 @@ Investigation-3 focused two-asset pipeline. Extracts the Pearson linear
 correlation between the daily log returns of the FTSE 100 (^FTSE) and SK Hynix
 (000660.KS).
 
-The full-sample Pearson is written to a single-row CSV (and Parquet). A 252-day
+The full-sample Pearson is written to a single-row Parquet table. A 252-day
 rolling Pearson is written to a time-series Parquet and rendered onto one line
 chart for visual inspection of whether the static number reflects a stable
 relationship or averages across regime flips.
@@ -114,7 +114,7 @@ log = logging.getLogger("ftse-skhynix-pearson-correlation")
 class StaticPearsonResult:
     """
     Full-sample Pearson linear correlation between two daily log-return series.
-    Written to the single-row CSV that is this file's primary deliverable.
+    Written to the single-row Parquet table that is this file's primary deliverable.
 
     INPUTS:
         * asset_a
@@ -175,26 +175,6 @@ def save_parquet(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
     directory.mkdir(parents = True, exist_ok = True)
     target_path = directory / f"{name_stem}.parquet"
     frame.to_parquet(target_path)
-    return target_path
-
-
-def save_csv(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
-    """
-    Write a DataFrame to CSV under the supplied directory. The static
-    correlation table is written to CSV because it is the headline deliverable
-    that the write-up reads directly.
-
-    INPUTS:
-        * frame      : DataFrame to write
-        * directory  : target directory
-        * name_stem  : file name without extension
-
-    OUTPUTS:
-        * Path to the written CSV file.
-    """
-    directory.mkdir(parents = True, exist_ok = True)
-    target_path = directory / f"{name_stem}.csv"
-    frame.to_csv(target_path, index = False)
     return target_path
 
 
@@ -410,7 +390,7 @@ def plot_rolling_pearson(rolling_frame: pd.DataFrame) -> Path:
     """
     Render the rolling Pearson correlation as one line. The chart is the
     headline visual for this file because it shows whether the static Pearson
-    reported in the CSV reflects a stable relationship or averages across
+    reported in the Parquet table reflects a stable relationship or averages across
     regime flips.
 
     INPUTS:
@@ -515,7 +495,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
     """
     Execute the end-to-end pipeline: fetch the price pair, compute daily log
     returns, extract the full-sample Pearson, compute the 252-day rolling
-    Pearson, persist every table as Parquet (and the headline Pearson as CSV),
+    Pearson, persist every table as Parquet,
     render the rolling-Pearson visual, and write a JSON run summary.
 
     INPUTS:
@@ -544,7 +524,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
         "n_obs":    static_result.n_obs,
         "pearson":  static_result.pearson,
     }])
-    save_csv(static_frame, DATA_PROCESSED_DIR, "static_pearson")
+    save_parquet(static_frame, DATA_PROCESSED_DIR, "static_pearson")
     save_parquet(static_frame, DATA_PROCESSED_DIR, "static_pearson")
 
     log.info("Computing rolling %dd Pearson", ROLLING_CORR_WINDOW)
@@ -609,7 +589,7 @@ def main() -> None:
         * None
 
     OUTPUTS:
-        * None. Side effects: figure in VISUALS_DIR, Parquet and CSV tables in
+        * None. Side effects: figure in VISUALS_DIR, Parquet tables in
           DATA_PROCESSED_DIR, raw caches in DATA_RAW_DIR, JSON summary in
           DATA_PROCESSED_DIR, stdout summary.
     """

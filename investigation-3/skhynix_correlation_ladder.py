@@ -462,26 +462,6 @@ def save_parquet(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
     return target_path
 
 
-def save_csv(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
-    """
-    Write a DataFrame to CSV under the supplied directory. The ranked
-    correlation table is also written to CSV because it is the headline
-    tabular deliverable that the write-up reads directly.
-
-    INPUTS:
-        * frame      : DataFrame to write
-        * directory  : target directory
-        * name_stem  : file name without extension
-
-    OUTPUTS:
-        * Path to the written CSV file.
-    """
-    directory.mkdir(parents = True, exist_ok = True)
-    target_path = directory / f"{name_stem}.csv"
-    frame.to_csv(target_path, index = False)
-    return target_path
-
-
 # Data acquisition.
 
 def download_one_safe(symbol: str, start_date: str, end_date: str) -> Optional[pd.DataFrame]:
@@ -873,8 +853,7 @@ def select_ladder_records(
 
 def records_to_frame(records: List[CorrelationRecord]) -> pd.DataFrame:
     """
-    Convert a list of CorrelationRecord into a tidy DataFrame for CSV and
-    Parquet output, sorted strongest co-mover first.
+    Convert a list of CorrelationRecord into a tidy DataFrame for Parquet output, sorted strongest co-mover first.
 
     INPUTS:
         * records  : list of CorrelationRecord
@@ -1132,14 +1111,14 @@ def run_pipeline(start_date: str, end_date: str) -> Dict[str, object]:
     )
 
     full_frame = records_to_frame(records)
-    save_csv(full_frame, DATA_PROCESSED_DIR, "correlations_all_full_sample")
+    save_parquet(full_frame, DATA_PROCESSED_DIR, "correlations_all_full_sample")
     save_parquet(full_frame, DATA_PROCESSED_DIR, "correlations_all_full_sample")
 
     # The ladder plot is a daily-frequency ranking, so the monthly FRED rows
     # are excluded from it; they live in the correlation table above.
     daily_records = [record for record in records if record.frequency == "daily"]
     ladder_records = select_ladder_records(daily_records, TOP_N_LADDER_BARS, PINNED_ASSET_NAMES)
-    save_csv(records_to_frame(ladder_records), DATA_PROCESSED_DIR, "ladder_records")
+    save_parquet(records_to_frame(ladder_records), DATA_PROCESSED_DIR, "ladder_records")
 
     log.info("Plotting the SK Hynix Spearman ladder")
     ladder_path = plot_spearman_ladder(ladder_records, PINNED_ASSET_NAMES)

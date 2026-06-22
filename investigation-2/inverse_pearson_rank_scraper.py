@@ -76,7 +76,7 @@ PRICE_TICKERS: Dict[str, Dict[str, str]] = {
     "us_sector_etf": {
         "tech_sector":          "XLK",
         "financials_sector":    "XLF",
-        "energy_sector":        "XLE",
+        "energy_sector":        "XLE", # possibly delisted
         "healthcare_sector":    "XLV",
         "industrials_sector":   "XLI",
         "consumer_disc_sector": "XLY",
@@ -109,75 +109,76 @@ PRICE_TICKERS: Dict[str, Dict[str, str]] = {
         "russell_1000":         "IWB",
         "russell_1000_growth":  "IWF",
         "russell_1000_value":   "IWD",
-        "momentum_factor":      "MTUM",
+        "momentum_factor":      "MTUM", # Possibly delisted
         "quality_factor":       "QUAL",
     },
     "country_etf": {
-        "japan":         "EWJ",
-        "germany":       "EWG",
-        "united_kingdom": "EWU",
-        "canada":        "EWC",
+        "japan":         "EWJ", # Possibly delisted
+        "germany":       "EWG", # Possibly delisted
+        "united_kingdom": "EWU", # Possibly delisted
+        "canada":        "EWC", # Possibly delisted
         "switzerland":   "EWL",
-        "south_korea":   "EWY",
-        "australia":     "EWA",
-        "france":        "EWQ",
-        "netherlands":   "EWN",
-        "developed_ex_us": "VEA",
-        "emerging_markets": "VWO",
-        "eafe":          "EFA",
+        "south_korea":   "EWY", # Possibly delisted
+        "australia":     "EWA", # Possibly delisted
+        "france":        "EWQ", # Possibly delisted
+        "netherlands":   "EWN", # Possibly delisted
+        "developed_ex_us": "VEA", # Possibly delisted
+        "emerging_markets": "VWO", # Possibly delisted
+        "eafe":          "EFA", # Possibly delisted
         "all_country":   "ACWI",
     },
-    "us_bond_etf": {
+    "us_bond_etf": { # Consider using FRED API as opposed to yfinance
+                     # Else, try keeping only the valid tikers  
         "treasury_20y_plus":    "TLT",
         "treasury_7_10y":       "IEF",
         "treasury_3_7y":        "IEI",
-        "treasury_1_3y":        "SHY",
-        "us_aggregate_bond":    "AGG",
-        "vanguard_total_bond":  "BND",
-        "tips_inflation":       "TIP",
-        "investment_grade_corp": "LQD",
-        "high_yield_corp":      "HYG",
-        "us_treasury_broad":    "GOVT",
+        "treasury_1_3y":        "SHY", # Possibly delisted
+        "us_aggregate_bond":    "AGG", # Possibly delisted
+        "vanguard_total_bond":  "BND", # Possibly delisted
+        "tips_inflation":       "TIP", # Possibly delisted
+        "investment_grade_corp": "LQD", # Possibly delisted
+        "high_yield_corp":      "HYG", # Possibly delisted
+        "us_treasury_broad":    "GOVT", # Possibly delisted
     },
-    "international_bond_etf": {
-        "intl_treasury_bwx":      "BWX",
-        "intl_treasury_igov":     "IGOV",
-        "intl_aggregate_bndx":    "BNDX",
-        "em_bonds_usd":           "EMB",
-        "em_bonds_local":         "EMLC",
+    "international_bond_etf": {# Consider using FRED API for 10 year yield spreads
+        "intl_treasury_bwx":      "BWX", # Possibly delisted
+        "intl_treasury_igov":     "IGOV", # Possibly delisted
+        "intl_aggregate_bndx":    "BNDX", # Possibly delisted
+        "em_bonds_usd":           "EMB", # Possibly delisted
+        "em_bonds_local":         "EMLC", # Possibly delisted
     },
     # Major cryptocurrencies. Yahoo Finance quotes cryptos with a '-USD'
     # suffix; tokens trade 24/7 but yfinance returns one row per UTC day so
     # the resulting series aligns with the equity / bond calendar after the
     # downstream forward-fill.
     "crypto_token": {
-        "bitcoin":      "BTC-USD",
-        "ethereum":     "ETH-USD",
-        "solana":       "SOL-USD",
-        "binance_coin": "BNB-USD",
-        "ripple":       "XRP-USD",
-        "cardano":      "ADA-USD",
-        "dogecoin":     "DOGE-USD",
-        "avalanche":    "AVAX-USD",
-        "polkadot":     "DOT-USD",
-        "chainlink":    "LINK-USD",
-        "litecoin":     "LTC-USD",
+        "bitcoin":      "BTC-USD", # Possibly delisted
+        "ethereum":     "ETH-USD", # Possibly delisted
+        "solana":       "SOL-USD", # Possibly delisted
+        "binance_coin": "BNB-USD", # Possibly delisted
+        "ripple":       "XRP-USD", # Possibly delisted
+        "cardano":      "ADA-USD", # Possibly delisted
+        "dogecoin":     "DOGE-USD", # Possibly delisted
+        "avalanche":    "AVAX-USD", # Possibly delisted
+        "polkadot":     "DOT-USD", # Possibly delisted
+        "chainlink":    "LINK-USD", # Possibly delisted
+        "litecoin":     "LTC-USD", # Possibly delisted
     },
     # Crypto-exposed equities: miners, exchanges, the corporate-treasury
     # bitcoin proxy MicroStrategy, the spot-bitcoin ETFs that launched in
     # 2024, and broader blockchain-equity baskets.
     "crypto_equity": {
-        "coinbase":             "COIN",
-        "microstrategy":        "MSTR",
-        "marathon_digital":     "MARA",
-        "riot_platforms":       "RIOT",
-        "hut_8_mining":         "HUT",
-        "cleanspark":           "CLSK",
-        "ishares_bitcoin_etf":  "IBIT",
-        "grayscale_bitcoin":    "GBTC",
-        "bitwise_crypto_innov": "BITQ",
-        "blockchain_amplify":   "BLOK",
-        "global_x_blockchain":  "BKCH",
+        "coinbase":             "COIN", # Possibly delisted
+        "microstrategy":        "MSTR", # Possibly delisted
+        "marathon_digital":     "MARA", # Possibly delisted
+        "riot_platforms":       "RIOT", # Possibly delisted
+        "hut_8_mining":         "HUT", # Possibly delisted
+        "cleanspark":           "CLSK", # Possibly delisted
+        "ishares_bitcoin_etf":  "IBIT", # Possibly delisted
+        "grayscale_bitcoin":    "GBTC", # Possibly delisted
+        "bitwise_crypto_innov": "BITQ", # Possibly delisted
+        "blockchain_amplify":   "BLOK", # Possibly delisted
+        "global_x_blockchain":  "BKCH", # Possibly delisted
     },
 }
 YIELD_TICKERS: Dict[str, Dict[str, str]] = {
@@ -460,26 +461,6 @@ def save_parquet(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
     directory.mkdir(parents = True, exist_ok = True)
     target_path = directory / f"{name_stem}.parquet"
     frame.to_parquet(target_path)
-    return target_path
-
-
-def save_csv(frame: pd.DataFrame, directory: Path, name_stem: str) -> Path:
-    """
-    Write a DataFrame to CSV under the supplied directory. CSV is the
-    primary deliverable format requested for the filtered correlation
-    outputs in this scraper.
-
-    INPUTS:
-        * frame      : DataFrame to write
-        * directory  : target directory
-        * name_stem  : file name without extension
-
-    OUTPUTS:
-        * Path to the written CSV file.
-    """
-    directory.mkdir(parents = True, exist_ok = True)
-    target_path = directory / f"{name_stem}.csv"
-    frame.to_csv(target_path, index = False)
     return target_path
 
 
@@ -860,8 +841,7 @@ def select_top_n_by_attribute(
 
 def records_to_frame(records: List[CorrelationRecord]) -> pd.DataFrame:
     """
-    Convert a list of CorrelationRecord into a tidy DataFrame for CSV /
-    Parquet output and for plotting. Columns: name, symbol, category,
+    Convert a list of CorrelationRecord into a tidy DataFrame for Parquet output and for plotting. Columns: name, symbol, category,
     n_obs, pearson, spearman.
 
     INPUTS:
@@ -1359,8 +1339,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
     differences, compute Pearson and Spearman correlations versus NASDAQ
     over the full sample and over the bearish NASDAQ regime, select the
     top TOP_N_VISUAL_BARS records in each direction and each method,
-    persist all of the ranked lists as CSV (primary deliverable) and
-    Parquet (for downstream reuse), and render the four ranked ladder
+    persist all of the ranked lists as Parquet for downstream reuse, and render the four ranked ladder
     diagrams.
 
     INPUTS:
@@ -1414,7 +1393,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
         sorted(full_records, key = lambda record: record.spearman, reverse = True)
     )
     save_parquet(full_frame_all, DATA_PROCESSED_DIR, "correlations_all_full_sample")
-    save_csv(full_frame_all, DATA_PROCESSED_DIR, "correlations_all_full_sample")
+    save_parquet(full_frame_all, DATA_PROCESSED_DIR, "correlations_all_full_sample")
 
     log.info("Computing Pearson and Spearman correlations on regime days")
     regime_records = compute_correlations_against_nasdaq(
@@ -1424,7 +1403,7 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
         sorted(regime_records, key = lambda record: record.spearman, reverse = True)
     )
     save_parquet(regime_frame_all, DATA_PROCESSED_DIR, "correlations_all_regime")
-    save_csv(regime_frame_all, DATA_PROCESSED_DIR, "correlations_all_regime")
+    save_parquet(regime_frame_all, DATA_PROCESSED_DIR, "correlations_all_regime")
 
     log.info("Selecting top %d records in each direction and method", TOP_N_VISUAL_BARS)
     top_positive_spearman_records = select_top_n_by_attribute(
@@ -1440,13 +1419,13 @@ def run_pipeline(start_date: str, end_date: str) -> PipelineSummary:
         full_records, "pearson", TOP_N_VISUAL_BARS, descending = False,
     )
 
-    save_csv(records_to_frame(top_positive_spearman_records),
+    save_parquet(records_to_frame(top_positive_spearman_records),
              DATA_PROCESSED_DIR, "top_positive_spearman")
-    save_csv(records_to_frame(top_negative_spearman_records),
+    save_parquet(records_to_frame(top_negative_spearman_records),
              DATA_PROCESSED_DIR, "top_negative_spearman")
-    save_csv(records_to_frame(top_positive_pearson_records),
+    save_parquet(records_to_frame(top_positive_pearson_records),
              DATA_PROCESSED_DIR, "top_positive_pearson")
-    save_csv(records_to_frame(top_negative_pearson_records),
+    save_parquet(records_to_frame(top_negative_pearson_records),
              DATA_PROCESSED_DIR, "top_negative_pearson")
     save_parquet(records_to_frame(top_positive_spearman_records),
                  DATA_PROCESSED_DIR, "top_positive_spearman")
@@ -1537,8 +1516,7 @@ def main() -> None:
         * None
 
     OUTPUTS:
-        * None. Side effects: figures in VISUALS_DIR, Parquet tables and
-          CSV deliverables in DATA_PROCESSED_DIR, raw caches in
+        * None. Side effects: figures in VISUALS_DIR, Parquet tables in DATA_PROCESSED_DIR, raw caches in
           DATA_RAW_DIR, JSON summary in DATA_PROCESSED_DIR, stdout summary.
     """
     cli_args = parse_args()

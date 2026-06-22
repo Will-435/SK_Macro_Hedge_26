@@ -25,9 +25,9 @@ scan separates the broad dollar from the won:
 
 | Dollar measure | Symbol | Spearman | Pearson |
 | --- | --- | --- | --- |
-| Broad dollar index | DX-Y.NYB | −0.03 | −0.06 |
-| Dollar ETF | UUP | −0.03 | −0.06 |
-| Won pair | KRW=X | −0.11 | −0.14 |
+| Broad dollar index | DX-Y.NYB | -0.03 | -0.06 |
+| Dollar ETF | UUP | -0.03 | -0.06 |
+| Won pair | KRW=X | -0.11 | -0.14 |
 
 Full sample, n = 3,937 (2015 to 2026). The broad dollar correlation is near
 zero; DXY and UUP agree. The negative signal is roughly three times stronger

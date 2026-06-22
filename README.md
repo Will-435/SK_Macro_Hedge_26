@@ -82,11 +82,11 @@ diversification actually comes from.
 
 ### Key takeaways
 
-- Gold vs USD holds a stable Spearman of roughly −0.4 across calm and bearish
+- Gold vs USD holds a stable Spearman of roughly -0.4 across calm and bearish
   regimes, the cleanest single fact in the project and the basis for treating
   gold as an FX leg, not an equity hedge.
-- Daily NASDAQ correlations max at roughly +0.99 (IWF, XLK) and roughly −0.10
-  (long-duration Treasuries). No asset in the universe reaches −0.6.
+- Daily NASDAQ correlations max at roughly +0.99 (IWF, XLK) and roughly -0.10
+  (long-duration Treasuries). No asset in the universe reaches -0.6.
 - International sovereign yields are sourced from the FRED API (monthly OECD
   series), not yfinance, whose coverage of those yields is unreliable. Because
   they are monthly, they are correlated at monthly frequency rather than forced
@@ -116,7 +116,7 @@ pointed at SK Hynix instead of the NASDAQ.
 - SK Hynix co-moves strongly with KOSPI (Pearson roughly +0.65 full sample, +0.83
   over the trailing year), so KOSPI is the only candidate strong enough to hedge.
 - The broad dollar (DXY) is near zero against SK Hynix; the inverse relationship
-  lives in the won pair specifically (USD/KRW roughly −0.15 full, −0.25 recent),
+  lives in the won pair specifically (USD/KRW roughly -0.15 full, -0.25 recent),
   not in the dollar generally. Gold is near zero against the book.
 
 ## Master
@@ -155,7 +155,7 @@ The window is the trailing 252 trading days, set by `BACKTEST_WINDOW`.
   the book's variance is KOSPI beta.
 - Shorting KOSPI lowers the Sharpe ratio (3.20 unhedged to 1.43 hedged): it sheds
   a profitable, positively-correlated exposure. The gradient ascent finds the
-  Sharpe-maximising hedge ratio is negative (−0.56), so no short hedge raises
+  Sharpe-maximising hedge ratio is negative (-0.56), so no short hedge raises
   risk-adjusted return. Reducing gross exposure is the only Sharpe-consistent
   action.
 

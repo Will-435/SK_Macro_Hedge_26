@@ -11,17 +11,17 @@
 * The data shows taht the effects of a technodollar or petrodollar aren't major factors. Neither has a strong correlation - polarity is driven by US Treasury yield spreads
 * The hit rate for a positive gold return over any given 4 weeks when SK Hynix realised volatility was in teh 75th percentile, and 4 week return was in the bottom 10th percentile, was ~60% with a mean return of ~27bps across all those days. (Pearson = 0.16, Spearman rank = 0.06)
 
-## Next Steps 
+## Next Steps
 
-* Prediction for the KRX Forecast 
+* Prediction for the KRX Forecast
 * Do KOSPI and SK Hynix have strong person and Spearman rank correlations
 * GLM, GAM, RF + Isotonic regression, NN - Which will best describe and predict the KRW and KOSPI
-* Trying to carry a correlation of one macro event over from one asset to another is a bad idea. 
+* Trying to carry a correlation of one macro event over from one asset to another is a bad idea.
   * Before promoting a trade, I should be conservative with pearman corrolation scores (>= 0.7) - Any less is not a valid hedge
 * In whatever model used, seperate household and public debt
 
 ## Further reading
 
-* Could Crypto challenge the USD as a global reserve/replace weak currencies? - Iwan. 
+* Could Crypto challenge the USD as a global reserve/replace weak currencies? - Iwan.
 * How much dos foreign exchange trading impact the value of currencies vs index funds and yield spreads?
 * What if we use bootstrapping to generate synthetic data, in order to calculat ethe probability of what did happen, and then relate that to a GAM in order to update probabilities or create a sample of "if... then" conditions that lead us to use different GAM models trained on different possible historical paths from our bootstrap method? 
